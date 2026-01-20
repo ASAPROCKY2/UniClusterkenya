@@ -1,37 +1,55 @@
 import express from "express";
-import ProgrammesRoutes from "./programmes/programmes.router"; // Import programmes router
-import UniversityRoutes from "./universities/universities.router"; // Import universities router
-import KcseResultsRoutes from "./KcseResults/KcseResults.router"; // Import KCSE results router
-import ApplicationsRoutes from "./studentsApplication/studentsApplication.router"; // Import applications router
-import PlacementsRoutes from "./placements/placements.router"; // Import placements router
-import ApplicationWindowsRoutes from "./applicationWindows/applicationWindows.router"; // Import application windows router
 
+// =============================
+// ROUTE IMPORTS
+// =============================
+import ProgrammesRoutes from "./programmes/programmes.router";
+import UniversityRoutes from "./universities/universities.router";
+import KcseResultsRoutes from "./KcseResults/KcseResults.router";
+import ApplicationsRoutes from "./studentsApplication/studentsApplication.router";
+import PlacementsRoutes from "./placements/placements.router";
+import ApplicationWindowsRoutes from "./applicationWindows/applicationWindows.router";
+
+// 🔹 NEW ROUTES
+import StudentsRoutes from "./students/students.router";
+import UniversityAdminsRoutes from "./UniversityAdmins/UniversityAdmins.router";
+import SystemAdminsRoutes from "./systemAdmins/systemAdmins.router";
+
+// =============================
+// APP SETUP
+// =============================
 const app = express();
-app.use(express.json()); // used to parse JSON bodies
+app.use(express.json());
 
-// Root route
-app.get("/", (req, res) => {
+// =============================
+// ROOT ROUTE
+// =============================
+app.get("/", (_req, res) => {
   res.send("🎓 UniCluster API is live");
 });
 
-// Register programmes routes
+// =============================
+// REGISTER ROUTES
+// =============================
 ProgrammesRoutes(app);
-
-// Register universities routes
 UniversityRoutes(app);
-
-// Register KCSE results routes
 KcseResultsRoutes(app);
-
-// Register applications routes
 ApplicationsRoutes(app);
-
-// Register placements routes
 PlacementsRoutes(app);
-
-// Register application windows routes
 ApplicationWindowsRoutes(app);
 
-app.listen(5000, () => {
-  console.log("🚀 UniCluster backend running on http://localhost:8081");
+// 🔹 Newly added
+StudentsRoutes(app);
+UniversityAdminsRoutes(app);
+SystemAdminsRoutes(app);
+
+// =============================
+// SERVER
+// =============================
+const PORT = 8081;
+
+app.listen(PORT, () => {
+  console.log(`🚀 UniCluster backend running on http://localhost:${PORT}`);
 });
+
+export default app;
