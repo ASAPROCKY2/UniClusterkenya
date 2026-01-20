@@ -1,8 +1,8 @@
 // src/programmes/programme.service.ts
 
 import { eq } from "drizzle-orm";
-import db from "../../Drizzle/db";
-import { ProgrammesTable } from "../../Drizzle/schema";
+import db from "../Drizzle/db";
+import { ProgrammesTable } from "../Drizzle/schema";
 
 /* =============================
    CREATE A NEW PROGRAMME

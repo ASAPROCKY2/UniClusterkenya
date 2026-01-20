@@ -10,6 +10,7 @@ export const createStudentService = async (student: any) => {
     .insert(StudentsTable)
     .values(student)
     .returning();
+
   return newStudent;
 };
 
@@ -18,7 +19,16 @@ export const createStudentService = async (student: any) => {
 ============================= */
 export const getStudentByEmailService = async (email: string) => {
   return await db.query.StudentsTable.findFirst({
-    where: sql`${StudentsTable.email} = ${email}`,
+    where: sql`email = ${email}`,
+  });
+};
+
+/* =============================
+   GET STUDENT BY USER ID
+============================= */
+export const getStudentByUserIdService = async (userID: number) => {
+  return await db.query.StudentsTable.findFirst({
+    where: eq(StudentsTable.userID, userID),
   });
 };
 

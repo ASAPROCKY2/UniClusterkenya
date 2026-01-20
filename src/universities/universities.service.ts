@@ -22,7 +22,6 @@ export const getAllUniversitiesService = async () => {
   return await db.query.UniversitiesTable.findMany({
     with: {
       programmes: true,       // include related programmes
-      universityAdmins: true, // include related admins
     },
   });
 };
@@ -35,7 +34,6 @@ export const getUniversityByIdService = async (id: number) => {
     where: eq(UniversitiesTable.universityID, id),
     with: {
       programmes: true,
-      universityAdmins: true,
     },
   });
 };
@@ -67,7 +65,6 @@ export const getUniversityWithProgrammesService = async (universityID: number) =
     where: eq(UniversitiesTable.universityID, universityID),
     with: {
       programmes: true,       // all programmes offered by this university
-      universityAdmins: true, // all admins of this university
     },
   });
 };

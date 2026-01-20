@@ -14,6 +14,8 @@ import ApplicationWindowsRoutes from "./applicationWindows/applicationWindows.ro
 import StudentsRoutes from "./students/students.router";
 import UniversityAdminsRoutes from "./UniversityAdmins/UniversityAdmins.router";
 import SystemAdminsRoutes from "./systemAdmins/systemAdmins.router";
+import NotificationsRoutes from "./notification/notification.router";
+import UserRoutes from "./user/user.router"; // <-- Import the new UserRoutes
 
 // =============================
 // APP SETUP
@@ -42,6 +44,8 @@ ApplicationWindowsRoutes(app);
 StudentsRoutes(app);
 UniversityAdminsRoutes(app);
 SystemAdminsRoutes(app);
+NotificationsRoutes(app); 
+UserRoutes(app); // <-- Register the new User routes
 
 // =============================
 // SERVER

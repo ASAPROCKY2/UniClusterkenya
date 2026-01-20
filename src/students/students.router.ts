@@ -6,11 +6,12 @@ import {
   updateStudentController,
   deleteStudentController,
   getStudentFullProfileController,
+  getStudentByUserIdController,
 } from "./students.controller";
 
 /* =============================
    STUDENT ROUTES
-============================= */
+============================ */
 const StudentsRoutes = (app: Express) => {
 
   // Create student
@@ -35,6 +36,15 @@ const StudentsRoutes = (app: Express) => {
   app.get("/students/:id", async (req, res, next) => {
     try {
       await getStudentByIdController(req, res);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // Get student by USER ID
+  app.get("/students/user/:userID", async (req, res, next) => {
+    try {
+      await getStudentByUserIdController(req, res);
     } catch (error) {
       next(error);
     }

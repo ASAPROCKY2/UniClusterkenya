@@ -1,5 +1,5 @@
 {
-  "id": "609735f4-2958-49fb-a84b-686ef4147a5d",
+  "id": "e34561fe-8295-4310-85d6-ac31d2265f5f",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -402,6 +402,12 @@
           "primaryKey": true,
           "notNull": true
         },
+        "userID": {
+          "name": "userID",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
         "firstName": {
           "name": "firstName",
           "type": "varchar(50)",
@@ -411,12 +417,6 @@
         "lastName": {
           "name": "lastName",
           "type": "varchar(50)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "email": {
-          "name": "email",
-          "type": "varchar(100)",
           "primaryKey": false,
           "notNull": true
         },
@@ -467,78 +467,40 @@
           "type": "text",
           "primaryKey": false,
           "notNull": false
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "students_email_unique": {
-          "name": "students_email_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "email"
-          ]
-        }
-      },
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.system_admins": {
-      "name": "system_admins",
-      "schema": "",
-      "columns": {
-        "adminID": {
-          "name": "adminID",
-          "type": "serial",
-          "primaryKey": true,
-          "notNull": true
         },
-        "firstName": {
-          "name": "firstName",
-          "type": "varchar(50)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "lastName": {
-          "name": "lastName",
-          "type": "varchar(50)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "email": {
-          "name": "email",
-          "type": "varchar(100)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "passwordHash": {
-          "name": "passwordHash",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "role": {
-          "name": "role",
-          "type": "varchar(50)",
+        "createdAt": {
+          "name": "createdAt",
+          "type": "timestamp",
           "primaryKey": false,
           "notNull": false,
-          "default": "'superadmin'"
+          "default": "now()"
+        },
+        "updatedAt": {
+          "name": "updatedAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
         }
       },
       "indexes": {},
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "system_admins_email_unique": {
-          "name": "system_admins_email_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "email"
-          ]
+      "foreignKeys": {
+        "students_userID_users_userID_fk": {
+          "name": "students_userID_users_userID_fk",
+          "tableFrom": "students",
+          "tableTo": "users",
+          "columnsFrom": [
+            "userID"
+          ],
+          "columnsTo": [
+            "userID"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
         }
       },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
@@ -600,32 +562,14 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.university_admins": {
-      "name": "university_admins",
+    "public.users": {
+      "name": "users",
       "schema": "",
       "columns": {
-        "uniAdminID": {
-          "name": "uniAdminID",
+        "userID": {
+          "name": "userID",
           "type": "serial",
           "primaryKey": true,
-          "notNull": true
-        },
-        "universityID": {
-          "name": "universityID",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "firstName": {
-          "name": "firstName",
-          "type": "varchar(50)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "lastName": {
-          "name": "lastName",
-          "type": "varchar(50)",
-          "primaryKey": false,
           "notNull": true
         },
         "email": {
@@ -642,32 +586,52 @@
         },
         "role": {
           "name": "role",
-          "type": "varchar(50)",
+          "type": "role",
+          "typeSchema": "public",
           "primaryKey": false,
           "notNull": false,
-          "default": "'admin'"
+          "default": "'student'"
+        },
+        "isVerified": {
+          "name": "isVerified",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
+        },
+        "verificationCode": {
+          "name": "verificationCode",
+          "type": "varchar(6)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "verificationCodeExpiresAt": {
+          "name": "verificationCodeExpiresAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        },
+        "updatedAt": {
+          "name": "updatedAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
         }
       },
       "indexes": {},
-      "foreignKeys": {
-        "university_admins_universityID_universities_universityID_fk": {
-          "name": "university_admins_universityID_universities_universityID_fk",
-          "tableFrom": "university_admins",
-          "tableTo": "universities",
-          "columnsFrom": [
-            "universityID"
-          ],
-          "columnsTo": [
-            "universityID"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
+      "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
-        "university_admins_email_unique": {
-          "name": "university_admins_email_unique",
+        "users_email_unique": {
+          "name": "users_email_unique",
           "nullsNotDistinct": false,
           "columns": [
             "email"
@@ -679,7 +643,17 @@
       "isRLSEnabled": false
     }
   },
-  "enums": {},
+  "enums": {
+    "public.role": {
+      "name": "role",
+      "schema": "public",
+      "values": [
+        "student",
+        "university_admin",
+        "system_admin"
+      ]
+    }
+  },
   "schemas": {},
   "sequences": {},
   "roles": {},
