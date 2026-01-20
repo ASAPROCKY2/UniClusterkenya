@@ -1,7 +1,6 @@
 import { Request, Response } from "express";
 import {
   createStudentService,
-  getStudentByEmailService,
   getAllStudentsService,
   getStudentByIdService,
   updateStudentService,
@@ -14,10 +13,9 @@ import {
    STUDENT INPUT TYPE (DTO)
 ============================ */
 interface StudentInput {
-  userID?: number;          // Optional (if student linked to user)
+  userID: number;          // Must be linked to existing UsersTable entry
   firstName: string;
   lastName: string;
-  email: string;
   phoneNumber?: string;
   gender: string;
   citizenship: string;
@@ -39,9 +37,9 @@ export const createStudentController = async (req: Request, res: Response) => {
        REQUIRED FIELD VALIDATION
     ============================= */
     const requiredFields: (keyof StudentInput)[] = [
+      "userID",       // ensure student is linked to user
       "firstName",
       "lastName",
-      "email",
       "gender",
       "citizenship",
       "highSchool",
@@ -51,26 +49,9 @@ export const createStudentController = async (req: Request, res: Response) => {
     ];
 
     for (const field of requiredFields) {
-      if (!student[field]) {
+      if (student[field] === undefined || student[field] === null || student[field] === "") {
         return res.status(400).json({ message: `${field} is required.` });
       }
-    }
-
-    /* =============================
-       EMAIL TYPE GUARD (BUG FIX)
-    ============================= */
-    if (typeof student.email !== "string") {
-      return res.status(400).json({ message: "Invalid email format." });
-    }
-
-    /* =============================
-       CHECK DUPLICATE EMAIL
-    ============================= */
-    const existingStudent = await getStudentByEmailService(student.email);
-    if (existingStudent) {
-      return res
-        .status(409)
-        .json({ message: "Student with this email already exists." });
     }
 
     /* =============================

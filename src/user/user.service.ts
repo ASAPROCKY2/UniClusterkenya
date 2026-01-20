@@ -42,7 +42,7 @@ export const createUserService = async (user: TIUser) => {
 //
 export const getUserByEmailService = async (email: string) => {
   return await db.query.UsersTable.findFirst({
-    where: sql`${UsersTable.email} = ${email}`,
+    where: sql`${UsersTable.email} = ${email.trim()}`, // trim email
   });
 };
 
@@ -50,7 +50,10 @@ export const getUserByEmailService = async (email: string) => {
 // 🧩 Verify a user using verification code
 //
 export const verifyUserService = async (email: string, code: string) => {
-  const user = await getUserByEmailService(email);
+  const trimmedEmail = email.trim();
+  const trimmedCode = code.trim();
+
+  const user = await getUserByEmailService(trimmedEmail);
 
   if (!user) {
     throw new Error("User not found");
@@ -66,7 +69,12 @@ export const verifyUserService = async (email: string, code: string) => {
     throw new Error("Verification code expired");
   }
 
-  if (user.verificationCode !== code) {
+  // trim stored code to avoid accidental space mismatch
+  if (user.verificationCode.trim() !== trimmedCode) {
+    console.log("Verification failed:", {
+      storedCode: user.verificationCode,
+      inputCode: trimmedCode,
+    });
     throw new Error("Invalid verification code");
   }
 
@@ -74,7 +82,7 @@ export const verifyUserService = async (email: string, code: string) => {
   await db
     .update(UsersTable)
     .set({ isVerified: true, verificationCode: null, verificationCodeExpiresAt: null })
-    .where(sql`${UsersTable.email} = ${email}`);
+    .where(sql`${UsersTable.email} = ${trimmedEmail}`);
 
   return "User verified successfully";
 };
@@ -83,7 +91,7 @@ export const verifyUserService = async (email: string, code: string) => {
 // 🧩 Login a user
 //
 export const userLoginService = async (user: TSUser) => {
-  const { email } = user;
+  const email = user.email.trim();
 
   const userExist = await db.query.UsersTable.findFirst({
     columns: {

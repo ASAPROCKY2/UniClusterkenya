@@ -12,7 +12,6 @@ import {
   deleteUserService,
   getUserWithStudentService,
 } from "../user/user.service";
-import { sendEmail } from "../mailer/mailer";
 
 //
 // 🧩 Create a new user
@@ -21,8 +20,15 @@ export const createUserController = async (req: Request, res: Response) => {
   try {
     const { firstName, lastName, email, password, role } = req.body;
 
+    // Validate input
+    if (!email || !password) {
+      return res.status(400).json({ error: "Email and password are required." });
+    }
+
+    const trimmedEmail = email.trim();
+
     // Check if user exists
-    const existingUser = await getUserByEmailService(email);
+    const existingUser = await getUserByEmailService(trimmedEmail);
     if (existingUser) {
       return res.status(409).json({ message: "Email already in use" });
     }
@@ -31,11 +37,11 @@ export const createUserController = async (req: Request, res: Response) => {
     const passwordHash = await bcrypt.hash(password, 10);
 
     const newUser = {
-      firstName,
-      lastName,
-      email,
+      firstName: firstName?.trim() || "",
+      lastName: lastName?.trim() || "",
+      email: trimmedEmail,
       passwordHash,
-      role,
+      role: role || "student",
     };
 
     await createUserService(newUser);
@@ -54,7 +60,14 @@ export const createUserController = async (req: Request, res: Response) => {
 //
 export const verifyUserController = async (req: Request, res: Response) => {
   try {
-    const { email, code } = req.body;
+    const email = req.body?.email?.trim();
+    const code = req.body?.code?.trim();
+
+    // Validate input
+    if (!email || !code) {
+      return res.status(400).json({ error: "Email and verification code are required." });
+    }
+
     await verifyUserService(email, code);
     return res.status(200).json({ message: "User verified successfully" });
   } catch (error: any) {
@@ -68,7 +81,12 @@ export const verifyUserController = async (req: Request, res: Response) => {
 //
 export const userLoginController = async (req: Request, res: Response) => {
   try {
-    const { email, password } = req.body;
+    const email = req.body?.email?.trim();
+    const password = req.body?.password;
+
+    if (!email || !password) {
+      return res.status(400).json({ error: "Email and password are required." });
+    }
 
     const user = await getUserByEmailService(email);
     if (!user) return res.status(404).json({ message: "User not found" });
