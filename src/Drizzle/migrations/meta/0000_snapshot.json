@@ -1,5 +1,5 @@
 {
-  "id": "e34561fe-8295-4310-85d6-ac31d2265f5f",
+  "id": "ae32204b-b630-4e7f-a1b2-af18862d2979",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -58,8 +58,8 @@
           "primaryKey": true,
           "notNull": true
         },
-        "studentID": {
-          "name": "studentID",
+        "userID": {
+          "name": "userID",
           "type": "integer",
           "primaryKey": false,
           "notNull": true
@@ -98,15 +98,15 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "applications_studentID_students_studentID_fk": {
-          "name": "applications_studentID_students_studentID_fk",
+        "applications_userID_users_userID_fk": {
+          "name": "applications_userID_users_userID_fk",
           "tableFrom": "applications",
-          "tableTo": "students",
+          "tableTo": "users",
           "columnsFrom": [
-            "studentID"
+            "userID"
           ],
           "columnsTo": [
-            "studentID"
+            "userID"
           ],
           "onDelete": "cascade",
           "onUpdate": "no action"
@@ -141,8 +141,8 @@
           "primaryKey": true,
           "notNull": true
         },
-        "studentID": {
-          "name": "studentID",
+        "userID": {
+          "name": "userID",
           "type": "integer",
           "primaryKey": false,
           "notNull": true
@@ -174,15 +174,15 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "kcse_results_studentID_students_studentID_fk": {
-          "name": "kcse_results_studentID_students_studentID_fk",
+        "kcse_results_userID_users_userID_fk": {
+          "name": "kcse_results_userID_users_userID_fk",
           "tableFrom": "kcse_results",
-          "tableTo": "students",
+          "tableTo": "users",
           "columnsFrom": [
-            "studentID"
+            "userID"
           ],
           "columnsTo": [
-            "studentID"
+            "userID"
           ],
           "onDelete": "cascade",
           "onUpdate": "no action"
@@ -254,8 +254,8 @@
           "primaryKey": true,
           "notNull": true
         },
-        "studentID": {
-          "name": "studentID",
+        "userID": {
+          "name": "userID",
           "type": "integer",
           "primaryKey": false,
           "notNull": true
@@ -282,15 +282,15 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "placements_studentID_students_studentID_fk": {
-          "name": "placements_studentID_students_studentID_fk",
+        "placements_userID_users_userID_fk": {
+          "name": "placements_userID_users_userID_fk",
           "tableFrom": "placements",
-          "tableTo": "students",
+          "tableTo": "users",
           "columnsFrom": [
-            "studentID"
+            "userID"
           ],
           "columnsTo": [
-            "studentID"
+            "userID"
           ],
           "onDelete": "cascade",
           "onUpdate": "no action"
@@ -381,119 +381,6 @@
           ],
           "columnsTo": [
             "universityID"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.students": {
-      "name": "students",
-      "schema": "",
-      "columns": {
-        "studentID": {
-          "name": "studentID",
-          "type": "serial",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "userID": {
-          "name": "userID",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "firstName": {
-          "name": "firstName",
-          "type": "varchar(50)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "lastName": {
-          "name": "lastName",
-          "type": "varchar(50)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "phoneNumber": {
-          "name": "phoneNumber",
-          "type": "varchar(20)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "gender": {
-          "name": "gender",
-          "type": "varchar(10)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "citizenship": {
-          "name": "citizenship",
-          "type": "varchar(50)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "highSchool": {
-          "name": "highSchool",
-          "type": "varchar(100)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "kcseIndex": {
-          "name": "kcseIndex",
-          "type": "varchar(20)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "meanGrade": {
-          "name": "meanGrade",
-          "type": "varchar(2)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "agp": {
-          "name": "agp",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "photoURL": {
-          "name": "photoURL",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "createdAt": {
-          "name": "createdAt",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": false,
-          "default": "now()"
-        },
-        "updatedAt": {
-          "name": "updatedAt",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": false,
-          "default": "now()"
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "students_userID_users_userID_fk": {
-          "name": "students_userID_users_userID_fk",
-          "tableFrom": "students",
-          "tableTo": "users",
-          "columnsFrom": [
-            "userID"
-          ],
-          "columnsTo": [
-            "userID"
           ],
           "onDelete": "cascade",
           "onUpdate": "no action"
@@ -608,6 +495,66 @@
         "verificationCodeExpiresAt": {
           "name": "verificationCodeExpiresAt",
           "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "firstName": {
+          "name": "firstName",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "lastName": {
+          "name": "lastName",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "phoneNumber": {
+          "name": "phoneNumber",
+          "type": "varchar(20)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "gender": {
+          "name": "gender",
+          "type": "varchar(10)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "citizenship": {
+          "name": "citizenship",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "highSchool": {
+          "name": "highSchool",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "kcseIndex": {
+          "name": "kcseIndex",
+          "type": "varchar(20)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "meanGrade": {
+          "name": "meanGrade",
+          "type": "varchar(2)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "agp": {
+          "name": "agp",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "photoURL": {
+          "name": "photoURL",
+          "type": "text",
           "primaryKey": false,
           "notNull": false
         },

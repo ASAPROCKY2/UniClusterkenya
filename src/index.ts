@@ -1,4 +1,5 @@
 import express from "express";
+import cors from "cors";
 
 // =============================
 // ROUTE IMPORTS
@@ -10,18 +11,25 @@ import ApplicationsRoutes from "./studentsApplication/studentsApplication.router
 import PlacementsRoutes from "./placements/placements.router";
 import ApplicationWindowsRoutes from "./applicationWindows/applicationWindows.router";
 
-// 🔹 NEW ROUTES
-import StudentsRoutes from "./students/students.router";
 import UniversityAdminsRoutes from "./UniversityAdmins/UniversityAdmins.router";
 import SystemAdminsRoutes from "./systemAdmins/systemAdmins.router";
 import NotificationsRoutes from "./notification/notification.router";
-import UserRoutes from "./user/user.router"; // <-- Import the new UserRoutes
+import UserRoutes from "./user/user.router";
 
 // =============================
 // APP SETUP
 // =============================
 const app = express();
+
 app.use(express.json());
+
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true,
+  })
+);
 
 // =============================
 // ROOT ROUTE
@@ -40,12 +48,10 @@ ApplicationsRoutes(app);
 PlacementsRoutes(app);
 ApplicationWindowsRoutes(app);
 
-// 🔹 Newly added
-StudentsRoutes(app);
 UniversityAdminsRoutes(app);
 SystemAdminsRoutes(app);
-NotificationsRoutes(app); 
-UserRoutes(app); // <-- Register the new User routes
+NotificationsRoutes(app);
+UserRoutes(app);
 
 // =============================
 // SERVER

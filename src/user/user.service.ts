@@ -1,33 +1,28 @@
 import { eq, sql } from "drizzle-orm";
 import db from "../Drizzle/db";
-import {
-  UsersTable,
-  StudentsTable,
-  roleEnum,
-  TIUser,
-  TSUser,
-} from "../Drizzle/schema";
+import bcrypt from "bcryptjs";
+import { UsersTable, TIUser } from "../Drizzle/schema";
 import { sendEmail } from "../mailer/mailer";
 
 //
 // 🧩 Create a new user (with verification code)
 //
 export const createUserService = async (user: TIUser) => {
-  // generate verification code
-  const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+  // Hash password before storing
+  const hashedPassword = await bcrypt.hash(user.passwordHash, 10);
 
-  // expiration time 15 minutes from now
-  const verificationCodeExpiresAt = new Date(Date.now() + 15 * 60 * 1000);
+  const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+  const verificationCodeExpiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
 
   await db.insert(UsersTable).values({
     ...user,
-    role: user.role,
+    passwordHash: hashedPassword,
+    role: user.role || "student",
     isVerified: false,
     verificationCode,
     verificationCodeExpiresAt,
   });
 
-  // send verification email
   const emailMessage = `Your verification code is ${verificationCode}. It expires in 15 minutes.`;
   const emailHTML = `<p>Your verification code is <b>${verificationCode}</b>.</p>
                      <p>This code expires in 15 minutes.</p>`;
@@ -42,7 +37,7 @@ export const createUserService = async (user: TIUser) => {
 //
 export const getUserByEmailService = async (email: string) => {
   return await db.query.UsersTable.findFirst({
-    where: sql`${UsersTable.email} = ${email.trim()}`, // trim email
+    where: sql`${UsersTable.email} = ${email.trim()}`,
   });
 };
 
@@ -54,33 +49,18 @@ export const verifyUserService = async (email: string, code: string) => {
   const trimmedCode = code.trim();
 
   const user = await getUserByEmailService(trimmedEmail);
+  if (!user) throw new Error("User not found");
 
-  if (!user) {
-    throw new Error("User not found");
-  }
-
-  // check expiration
   const now = new Date();
-  if (!user.verificationCode || !user.verificationCodeExpiresAt) {
+  if (!user.verificationCode || !user.verificationCodeExpiresAt)
     throw new Error("No verification code found");
-  }
-
-  if (user.verificationCodeExpiresAt < now) {
+  if (user.verificationCodeExpiresAt < now)
     throw new Error("Verification code expired");
-  }
 
-  // trim stored code to avoid accidental space mismatch
-  if (user.verificationCode.trim() !== trimmedCode) {
-    console.log("Verification failed:", {
-      storedCode: user.verificationCode,
-      inputCode: trimmedCode,
-    });
+  if (user.verificationCode.trim() !== trimmedCode)
     throw new Error("Invalid verification code");
-  }
 
-  // set verified true
-  await db
-    .update(UsersTable)
+  await db.update(UsersTable)
     .set({ isVerified: true, verificationCode: null, verificationCodeExpiresAt: null })
     .where(sql`${UsersTable.email} = ${trimmedEmail}`);
 
@@ -88,31 +68,47 @@ export const verifyUserService = async (email: string, code: string) => {
 };
 
 //
-// 🧩 Login a user
+// 🧩 Login a user (email + KCSE index + password)
 //
-export const userLoginService = async (user: TSUser) => {
-  const email = user.email.trim();
+export const userLoginService = async (data: {
+  email: string;
+  kcseIndex: string;
+  password: string;
+}) => {
+  const trimmedEmail = data.email.trim();
+  const trimmedKCSE = data.kcseIndex.trim();
+  const password = data.password;
 
-  const userExist = await db.query.UsersTable.findFirst({
-    columns: {
-      userID: true,
-      email: true,
-      passwordHash: true,
-      role: true,
-      isVerified: true,
-    },
-    where: sql`${UsersTable.email} = ${email}`,
+  // 1️⃣ Find user by email
+  const user = await db.query.UsersTable.findFirst({
+    where: sql`${UsersTable.email} = ${trimmedEmail}`,
   });
 
-  if (!userExist) {
-    throw new Error("User not found");
+  if (!user) throw new Error("User not found");
+  if (!user.isVerified) throw new Error("User is not verified. Please verify your email first.");
+
+  // 2️⃣ Check KCSE index (only for students)
+  if (user.role === "student") {
+    if (!user.kcseIndex || user.kcseIndex !== trimmedKCSE)
+      throw new Error("Invalid KCSE index");
   }
 
-  if (!userExist.isVerified) {
-    throw new Error("User is not verified. Please verify your email first.");
-  }
+  // 3️⃣ Validate password
+  const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
+  if (!isPasswordValid) throw new Error("Incorrect password");
 
-  return userExist;
+  // 4️⃣ Return relevant info
+  return {
+    userID: user.userID,
+    email: user.email,
+    role: user.role,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    kcseIndex: user.kcseIndex,
+    agp: user.agp,
+    meanGrade: user.meanGrade,
+    image_url: user.photoURL,
+  };
 };
 
 //
@@ -134,17 +130,14 @@ export const getUserByIdService = async (id: number) => {
 //
 // 🧩 Update a user by ID
 //
-export const updateUserService = async (
-  id: number,
-  updates: Partial<TIUser>
-) => {
+export const updateUserService = async (id: number, updates: Partial<TIUser>) => {
+  // If password is being updated, hash it
+  if (updates.passwordHash) {
+    updates.passwordHash = await bcrypt.hash(updates.passwordHash, 10);
+  }
+
   const allowedUpdates = { ...updates, updatedAt: new Date() };
-
-  await db
-    .update(UsersTable)
-    .set(allowedUpdates)
-    .where(eq(UsersTable.userID, id));
-
+  await db.update(UsersTable).set(allowedUpdates).where(eq(UsersTable.userID, id));
   return "User updated successfully";
 };
 
@@ -154,16 +147,4 @@ export const updateUserService = async (
 export const deleteUserService = async (id: number) => {
   await db.delete(UsersTable).where(eq(UsersTable.userID, id));
   return "User deleted successfully";
-};
-
-//
-// 🧩 Get a user with their student profile
-//
-export const getUserWithStudentService = async (userID: number) => {
-  return await db.query.UsersTable.findFirst({
-    where: eq(UsersTable.userID, userID),
-    with: {
-      student: true,
-    },
-  });
 };

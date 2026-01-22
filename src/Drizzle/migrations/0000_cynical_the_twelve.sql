@@ -9,7 +9,7 @@ CREATE TABLE "application_windows" (
 --> statement-breakpoint
 CREATE TABLE "applications" (
 	"applicationID" serial PRIMARY KEY NOT NULL,
-	"studentID" integer NOT NULL,
+	"userID" integer NOT NULL,
 	"programmeID" integer NOT NULL,
 	"choiceOrder" integer NOT NULL,
 	"applicationDate" date NOT NULL,
@@ -19,7 +19,7 @@ CREATE TABLE "applications" (
 --> statement-breakpoint
 CREATE TABLE "kcse_results" (
 	"resultID" serial PRIMARY KEY NOT NULL,
-	"studentID" integer NOT NULL,
+	"userID" integer NOT NULL,
 	"subjectCode" varchar(10) NOT NULL,
 	"subjectName" varchar(50) NOT NULL,
 	"grade" varchar(2) NOT NULL,
@@ -37,7 +37,7 @@ CREATE TABLE "notifications" (
 --> statement-breakpoint
 CREATE TABLE "placements" (
 	"placementID" serial PRIMARY KEY NOT NULL,
-	"studentID" integer NOT NULL,
+	"userID" integer NOT NULL,
 	"programmeID" integer NOT NULL,
 	"placementStatus" varchar(50) DEFAULT 'Not Placed',
 	"placementDate" date
@@ -52,23 +52,6 @@ CREATE TABLE "programmes" (
 	"minAGP" integer,
 	"helbEligible" boolean DEFAULT false,
 	"scholarshipAvailable" boolean DEFAULT false
-);
---> statement-breakpoint
-CREATE TABLE "students" (
-	"studentID" serial PRIMARY KEY NOT NULL,
-	"userID" integer NOT NULL,
-	"firstName" varchar(50) NOT NULL,
-	"lastName" varchar(50) NOT NULL,
-	"phoneNumber" varchar(20),
-	"gender" varchar(10) NOT NULL,
-	"citizenship" varchar(50) NOT NULL,
-	"highSchool" varchar(100) NOT NULL,
-	"kcseIndex" varchar(20) NOT NULL,
-	"meanGrade" varchar(2) NOT NULL,
-	"agp" integer NOT NULL,
-	"photoURL" text,
-	"createdAt" timestamp DEFAULT now(),
-	"updatedAt" timestamp DEFAULT now()
 );
 --> statement-breakpoint
 CREATE TABLE "universities" (
@@ -89,15 +72,24 @@ CREATE TABLE "users" (
 	"isVerified" boolean DEFAULT false,
 	"verificationCode" varchar(6),
 	"verificationCodeExpiresAt" timestamp,
+	"firstName" varchar(50),
+	"lastName" varchar(50),
+	"phoneNumber" varchar(20),
+	"gender" varchar(10),
+	"citizenship" varchar(50),
+	"highSchool" varchar(100),
+	"kcseIndex" varchar(20),
+	"meanGrade" varchar(2),
+	"agp" integer,
+	"photoURL" text,
 	"createdAt" timestamp DEFAULT now(),
 	"updatedAt" timestamp DEFAULT now(),
 	CONSTRAINT "users_email_unique" UNIQUE("email")
 );
 --> statement-breakpoint
-ALTER TABLE "applications" ADD CONSTRAINT "applications_studentID_students_studentID_fk" FOREIGN KEY ("studentID") REFERENCES "public"."students"("studentID") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "applications" ADD CONSTRAINT "applications_userID_users_userID_fk" FOREIGN KEY ("userID") REFERENCES "public"."users"("userID") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "applications" ADD CONSTRAINT "applications_programmeID_programmes_programmeID_fk" FOREIGN KEY ("programmeID") REFERENCES "public"."programmes"("programmeID") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "kcse_results" ADD CONSTRAINT "kcse_results_studentID_students_studentID_fk" FOREIGN KEY ("studentID") REFERENCES "public"."students"("studentID") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "placements" ADD CONSTRAINT "placements_studentID_students_studentID_fk" FOREIGN KEY ("studentID") REFERENCES "public"."students"("studentID") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "kcse_results" ADD CONSTRAINT "kcse_results_userID_users_userID_fk" FOREIGN KEY ("userID") REFERENCES "public"."users"("userID") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "placements" ADD CONSTRAINT "placements_userID_users_userID_fk" FOREIGN KEY ("userID") REFERENCES "public"."users"("userID") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "placements" ADD CONSTRAINT "placements_programmeID_programmes_programmeID_fk" FOREIGN KEY ("programmeID") REFERENCES "public"."programmes"("programmeID") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "programmes" ADD CONSTRAINT "programmes_universityID_universities_universityID_fk" FOREIGN KEY ("universityID") REFERENCES "public"."universities"("universityID") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "students" ADD CONSTRAINT "students_userID_users_userID_fk" FOREIGN KEY ("userID") REFERENCES "public"."users"("userID") ON DELETE cascade ON UPDATE no action;
+ALTER TABLE "programmes" ADD CONSTRAINT "programmes_universityID_universities_universityID_fk" FOREIGN KEY ("universityID") REFERENCES "public"."universities"("universityID") ON DELETE cascade ON UPDATE no action;

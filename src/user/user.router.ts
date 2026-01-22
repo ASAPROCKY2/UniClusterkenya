@@ -7,7 +7,6 @@ import {
   getUserByIdController,
   updateUserController,
   deleteUserController,
-  getUserWithStudentController,
 } from "./user.controller";
 
 //
@@ -78,18 +77,6 @@ const UserRoutes = (app: Express) => {
   app.route("/users/:id").delete(async (req, res, next) => {
     try {
       await deleteUserController(req, res);
-    } catch (error) {
-      next(error);
-    }
-  });
-
-  //
-  // 👨‍🎓 USER RELATIONS
-  //
-  // Get user with student profile
-  app.route("/users/:id/student").get(async (req, res, next) => {
-    try {
-      await getUserWithStudentController(req, res);
     } catch (error) {
       next(error);
     }
