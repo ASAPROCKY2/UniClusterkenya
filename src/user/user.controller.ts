@@ -17,7 +17,21 @@ import {
 //
 export const createUserController = async (req: Request, res: Response) => {
   try {
-    const { firstName, lastName, email, password, role, kcseIndex, agp, meanGrade, photoURL } = req.body;
+    const {
+      firstName,
+      lastName,
+      email,
+      password,
+      role,
+      kcseIndex,
+      agp,
+      meanGrade,
+      photoURL,
+      phoneNumber,
+      gender,
+      citizenship,
+      highSchool,
+    } = req.body;
 
     if (!email || !password) {
       return res.status(400).json({ error: "Email and password are required." });
@@ -31,17 +45,24 @@ export const createUserController = async (req: Request, res: Response) => {
       return res.status(409).json({ message: "Email already in use" });
     }
 
+    // Hash password
+    const passwordHash = await bcrypt.hash(password, 10);
+
     // Prepare user object
     const newUser = {
       firstName: firstName?.trim() || "",
       lastName: lastName?.trim() || "",
       email: trimmedEmail,
-      passwordHash: password,
+      passwordHash,
       role: role || "student",
       kcseIndex: kcseIndex?.trim() || null,
       agp: agp || null,
       meanGrade: meanGrade || null,
       photoURL: photoURL || null,
+      phoneNumber: phoneNumber?.trim() || null,
+      gender: gender?.trim() || null,
+      citizenship: citizenship?.trim() || null,
+      highSchool: highSchool?.trim() || null,
     };
 
     await createUserService(newUser);
