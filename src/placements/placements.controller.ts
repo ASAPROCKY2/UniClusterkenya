@@ -1,3 +1,5 @@
+// src/placements/placements.controller.ts
+
 import { Request, Response } from "express";
 import {
   createPlacementService,
@@ -5,19 +7,28 @@ import {
   getPlacementByIdService,
   updatePlacementService,
   deletePlacementService,
-  getStudentPlacementsService,
+  getUserPlacementsService,
 } from "./placements.service";
 
-// ✅ Create a new placement
+/* =============================
+   CREATE A NEW PLACEMENT
+============================= */
 export const createPlacementController = async (req: Request, res: Response) => {
   try {
-    const placement = req.body;
+    const { userID, programmeID, placementStatus, placementDate } = req.body;
 
-    if (!placement.studentID || !placement.programmeID) {
-      return res.status(400).json({ message: "Student ID and programme ID are required." });
+    if (!userID || !programmeID) {
+      return res.status(400).json({
+        message: "User ID and programme ID are required.",
+      });
     }
 
-    const newPlacement = await createPlacementService(placement);
+    const newPlacement = await createPlacementService({
+      userID,
+      programmeID,
+      placementStatus,
+      placementDate,
+    });
 
     return res.status(201).json({
       message: "Placement created successfully",
@@ -29,8 +40,13 @@ export const createPlacementController = async (req: Request, res: Response) => 
   }
 };
 
-// ✅ Get all placements
-export const getAllPlacementsController = async (_req: Request, res: Response) => {
+/* =============================
+   GET ALL PLACEMENTS
+============================= */
+export const getAllPlacementsController = async (
+  _req: Request,
+  res: Response
+) => {
   try {
     const placements = await getAllPlacementsService();
     return res.status(200).json({ data: placements });
@@ -40,14 +56,23 @@ export const getAllPlacementsController = async (_req: Request, res: Response) =
   }
 };
 
-// ✅ Get placement by ID
-export const getPlacementByIdController = async (req: Request, res: Response) => {
+/* =============================
+   GET PLACEMENT BY ID
+============================= */
+export const getPlacementByIdController = async (
+  req: Request,
+  res: Response
+) => {
   try {
-    const id = parseInt(req.params.id as string);
-    if (isNaN(id)) return res.status(400).json({ message: "Invalid placement ID." });
+    const id = Number(req.params.id);
+    if (isNaN(id)) {
+      return res.status(400).json({ message: "Invalid placement ID." });
+    }
 
     const placement = await getPlacementByIdService(id);
-    if (!placement) return res.status(404).json({ message: "Placement not found." });
+    if (!placement) {
+      return res.status(404).json({ message: "Placement not found." });
+    }
 
     return res.status(200).json({ data: placement });
   } catch (error: any) {
@@ -56,14 +81,20 @@ export const getPlacementByIdController = async (req: Request, res: Response) =>
   }
 };
 
-// ✅ Update placement by ID
-export const updatePlacementController = async (req: Request, res: Response) => {
+/* =============================
+   UPDATE PLACEMENT
+============================= */
+export const updatePlacementController = async (
+  req: Request,
+  res: Response
+) => {
   try {
-    const id = parseInt(req.params.id as string);
-    if (isNaN(id)) return res.status(400).json({ message: "Invalid placement ID." });
+    const id = Number(req.params.id);
+    if (isNaN(id)) {
+      return res.status(400).json({ message: "Invalid placement ID." });
+    }
 
-    const updates = req.body;
-    const result = await updatePlacementService(id, updates);
+    const result = await updatePlacementService(id, req.body);
 
     return res.status(200).json({ message: result });
   } catch (error: any) {
@@ -72,11 +103,18 @@ export const updatePlacementController = async (req: Request, res: Response) => 
   }
 };
 
-// ✅ Delete placement by ID
-export const deletePlacementController = async (req: Request, res: Response) => {
+/* =============================
+   DELETE PLACEMENT
+============================= */
+export const deletePlacementController = async (
+  req: Request,
+  res: Response
+) => {
   try {
-    const id = parseInt(req.params.id as string);
-    if (isNaN(id)) return res.status(400).json({ message: "Invalid placement ID." });
+    const id = Number(req.params.id);
+    if (isNaN(id)) {
+      return res.status(400).json({ message: "Invalid placement ID." });
+    }
 
     const result = await deletePlacementService(id);
     return res.status(200).json({ message: result });
@@ -86,16 +124,23 @@ export const deletePlacementController = async (req: Request, res: Response) => 
   }
 };
 
-// ✅ Get all placements for a specific student
-export const getStudentPlacementsController = async (req: Request, res: Response) => {
+/* =============================
+   GET ALL PLACEMENTS FOR A USER
+============================= */
+export const getUserPlacementsController = async (
+  req: Request,
+  res: Response
+) => {
   try {
-    const studentID = parseInt(req.params.studentID as string);
-    if (isNaN(studentID)) return res.status(400).json({ message: "Invalid student ID." });
+    const userID = Number(req.params.userID);
+    if (isNaN(userID)) {
+      return res.status(400).json({ message: "Invalid user ID." });
+    }
 
-    const placements = await getStudentPlacementsService(studentID);
+    const placements = await getUserPlacementsService(userID);
     return res.status(200).json({ data: placements });
   } catch (error: any) {
-    console.error("Error in getStudentPlacementsController:", error);
+    console.error("Error in getUserPlacementsController:", error);
     return res.status(500).json({ error: error.message });
   }
 };

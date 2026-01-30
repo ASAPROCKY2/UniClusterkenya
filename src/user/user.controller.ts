@@ -13,25 +13,11 @@ import {
 } from "../user/user.service";
 
 //
-// 🧩 Create a new user
+//  Create a new user
 //
 export const createUserController = async (req: Request, res: Response) => {
   try {
-    const {
-      firstName,
-      lastName,
-      email,
-      password,
-      role,
-      kcseIndex,
-      agp,
-      meanGrade,
-      photoURL,
-      phoneNumber,
-      gender,
-      citizenship,
-      highSchool,
-    } = req.body;
+    const { firstName, lastName, email, password, role, kcseIndex, agp, meanGrade, photoURL } = req.body;
 
     if (!email || !password) {
       return res.status(400).json({ error: "Email and password are required." });
@@ -45,24 +31,17 @@ export const createUserController = async (req: Request, res: Response) => {
       return res.status(409).json({ message: "Email already in use" });
     }
 
-    // Hash password
-    const passwordHash = await bcrypt.hash(password, 10);
-
     // Prepare user object
     const newUser = {
       firstName: firstName?.trim() || "",
       lastName: lastName?.trim() || "",
       email: trimmedEmail,
-      passwordHash,
+      passwordHash: password,
       role: role || "student",
       kcseIndex: kcseIndex?.trim() || null,
       agp: agp || null,
       meanGrade: meanGrade || null,
       photoURL: photoURL || null,
-      phoneNumber: phoneNumber?.trim() || null,
-      gender: gender?.trim() || null,
-      citizenship: citizenship?.trim() || null,
-      highSchool: highSchool?.trim() || null,
     };
 
     await createUserService(newUser);
@@ -71,13 +50,13 @@ export const createUserController = async (req: Request, res: Response) => {
       message: "User created successfully. Verification code sent to email.",
     });
   } catch (error: any) {
-    console.error("❌ Error in createUserController:", error);
+    console.error(" Error in createUserController:", error);
     return res.status(500).json({ error: error.message });
   }
 };
 
 //
-// 🧩 Verify user
+//  Verify user
 //
 export const verifyUserController = async (req: Request, res: Response) => {
   try {

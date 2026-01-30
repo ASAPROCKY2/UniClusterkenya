@@ -1,5 +1,4 @@
 // src/applications/applications.controller.ts
-
 import { Request, Response } from "express";
 import {
   createApplicationService,
@@ -7,19 +6,48 @@ import {
   getApplicationByIdService,
   updateApplicationService,
   deleteApplicationService,
-  getStudentApplicationsService,
+  getUserApplicationsService,
 } from "./studentsApplication.service";
 
-// ✅ Create a new student application
+//  Helper to safely parse IDs from req.params
+const parseID = (value: string | string[] | undefined): number | null => {
+  if (!value) return null;
+  const str = Array.isArray(value) ? value[0] : value; // take first element if array
+  const id = parseInt(str, 10);
+  return isNaN(id) ? null : id;
+};
+
+//  Create a new application
 export const createApplicationController = async (req: Request, res: Response) => {
   try {
-    const application = req.body;
+    const { userID, studentID, programmeID, choiceOrder, applicationDate, status, clusterScore } = req.body;
 
-    if (!application.studentID || !application.programmeID || !application.choiceOrder || !application.applicationDate) {
-      return res.status(400).json({ message: "Student ID, programme ID, choice order, and application date are required." });
+    const finalUserID = userID || studentID;
+
+    // Validate required fields
+    if (!finalUserID || !programmeID || !choiceOrder || !applicationDate) {
+      return res.status(400).json({
+        message: "User ID, programme ID, choice order, and application date are required.",
+      });
     }
 
-    const createdApplication = await createApplicationService(application);
+    // Validate applicationDate format
+    const parsedDate = new Date(applicationDate);
+    if (isNaN(parsedDate.getTime())) {
+      return res.status(400).json({ message: "Invalid applicationDate format." });
+    }
+
+    // Pass applicationDate as string (YYYY-MM-DD) to service
+    const applicationData = {
+      userID: finalUserID,
+      programmeID,
+      choiceOrder,
+      applicationDate: parsedDate.toISOString().split("T")[0], // format to "YYYY-MM-DD"
+      status: status || "Pending",
+      clusterScore: clusterScore || null,
+    };
+
+    const createdApplication = await createApplicationService(applicationData);
 
     return res.status(201).json({
       message: "Application created successfully",
@@ -31,7 +59,7 @@ export const createApplicationController = async (req: Request, res: Response) =
   }
 };
 
-// ✅ Get all student applications
+// ✅ Get all applications
 export const getAllApplicationsController = async (_req: Request, res: Response) => {
   try {
     const applications = await getAllApplicationsService();
@@ -45,8 +73,8 @@ export const getAllApplicationsController = async (_req: Request, res: Response)
 // ✅ Get application by ID
 export const getApplicationByIdController = async (req: Request, res: Response) => {
   try {
-    const id = parseInt(req.params.id as string);
-    if (isNaN(id)) return res.status(400).json({ message: "Invalid application ID." });
+    const id = parseID(req.params.id);
+    if (!id) return res.status(400).json({ message: "Invalid application ID." });
 
     const application = await getApplicationByIdService(id);
     if (!application) return res.status(404).json({ message: "Application not found." });
@@ -61,12 +89,21 @@ export const getApplicationByIdController = async (req: Request, res: Response) 
 // ✅ Update application by ID
 export const updateApplicationController = async (req: Request, res: Response) => {
   try {
-    const id = parseInt(req.params.id as string);
-    if (isNaN(id)) return res.status(400).json({ message: "Invalid application ID." });
+    const id = parseID(req.params.id);
+    if (!id) return res.status(400).json({ message: "Invalid application ID." });
 
-    const updates = req.body;
+    const updates = { ...req.body };
+
+    // If updating applicationDate, validate and convert to string
+    if (updates.applicationDate) {
+      const parsedDate = new Date(updates.applicationDate);
+      if (isNaN(parsedDate.getTime())) {
+        return res.status(400).json({ message: "Invalid applicationDate format." });
+      }
+      updates.applicationDate = parsedDate.toISOString().split("T")[0]; // format to "YYYY-MM-DD"
+    }
+
     const result = await updateApplicationService(id, updates);
-
     return res.status(200).json({ message: result });
   } catch (error: any) {
     console.error("Error in updateApplicationController:", error);
@@ -77,8 +114,8 @@ export const updateApplicationController = async (req: Request, res: Response) =
 // ✅ Delete application by ID
 export const deleteApplicationController = async (req: Request, res: Response) => {
   try {
-    const id = parseInt(req.params.id as string);
-    if (isNaN(id)) return res.status(400).json({ message: "Invalid application ID." });
+    const id = parseID(req.params.id);
+    if (!id) return res.status(400).json({ message: "Invalid application ID." });
 
     const result = await deleteApplicationService(id);
     return res.status(200).json({ message: result });
@@ -88,16 +125,16 @@ export const deleteApplicationController = async (req: Request, res: Response) =
   }
 };
 
-// ✅ Get all applications for a specific student
-export const getStudentApplicationsController = async (req: Request, res: Response) => {
+// ✅ Get all applications for a specific user
+export const getUserApplicationsController = async (req: Request, res: Response) => {
   try {
-    const studentID = parseInt(req.params.studentID as string);
-    if (isNaN(studentID)) return res.status(400).json({ message: "Invalid student ID." });
+    const userID = parseID(req.params.userID);
+    if (!userID) return res.status(400).json({ message: "Invalid user ID." });
 
-    const applications = await getStudentApplicationsService(studentID);
+    const applications = await getUserApplicationsService(userID);
     return res.status(200).json({ data: applications });
   } catch (error: any) {
-    console.error("Error in getStudentApplicationsController:", error);
+    console.error("Error in getUserApplicationsController:", error);
     return res.status(500).json({ error: error.message });
   }
 };

@@ -1,5 +1,5 @@
 {
-  "id": "ae32204b-b630-4e7f-a1b2-af18862d2979",
+  "id": "27265cd2-72d1-49cb-aef5-fc9daf59fa01",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -315,6 +315,126 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
+    "public.programme_cluster_map": {
+      "name": "programme_cluster_map",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "programmeID": {
+          "name": "programmeID",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "clusterID": {
+          "name": "clusterID",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "programme_cluster_map_programmeID_programmes_programmeID_fk": {
+          "name": "programme_cluster_map_programmeID_programmes_programmeID_fk",
+          "tableFrom": "programme_cluster_map",
+          "tableTo": "programmes",
+          "columnsFrom": [
+            "programmeID"
+          ],
+          "columnsTo": [
+            "programmeID"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "programme_cluster_map_clusterID_programme_clusters_clusterID_fk": {
+          "name": "programme_cluster_map_clusterID_programme_clusters_clusterID_fk",
+          "tableFrom": "programme_cluster_map",
+          "tableTo": "programme_clusters",
+          "columnsFrom": [
+            "clusterID"
+          ],
+          "columnsTo": [
+            "clusterID"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.programme_clusters": {
+      "name": "programme_clusters",
+      "schema": "",
+      "columns": {
+        "clusterID": {
+          "name": "clusterID",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "clusterCode": {
+          "name": "clusterCode",
+          "type": "varchar(20)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar(150)",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.programme_levels": {
+      "name": "programme_levels",
+      "schema": "",
+      "columns": {
+        "levelID": {
+          "name": "levelID",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
     "public.programmes": {
       "name": "programmes",
       "schema": "",
@@ -323,12 +443,6 @@
           "name": "programmeID",
           "type": "serial",
           "primaryKey": true,
-          "notNull": true
-        },
-        "universityID": {
-          "name": "universityID",
-          "type": "integer",
-          "primaryKey": false,
           "notNull": true
         },
         "name": {
@@ -342,50 +456,10 @@
           "type": "varchar(50)",
           "primaryKey": false,
           "notNull": false
-        },
-        "durationYears": {
-          "name": "durationYears",
-          "type": "numeric(2, 1)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "minAGP": {
-          "name": "minAGP",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "helbEligible": {
-          "name": "helbEligible",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": false,
-          "default": false
-        },
-        "scholarshipAvailable": {
-          "name": "scholarshipAvailable",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": false,
-          "default": false
         }
       },
       "indexes": {},
-      "foreignKeys": {
-        "programmes_universityID_universities_universityID_fk": {
-          "name": "programmes_universityID_universities_universityID_fk",
-          "tableFrom": "programmes",
-          "tableTo": "universities",
-          "columnsFrom": [
-            "universityID"
-          ],
-          "columnsTo": [
-            "universityID"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
+      "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
@@ -443,6 +517,90 @@
       },
       "indexes": {},
       "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.university_programmes": {
+      "name": "university_programmes",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "universityID": {
+          "name": "universityID",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "programmeID": {
+          "name": "programmeID",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "durationYears": {
+          "name": "durationYears",
+          "type": "numeric(2, 1)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "minAGP": {
+          "name": "minAGP",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "helbEligible": {
+          "name": "helbEligible",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
+        },
+        "scholarshipAvailable": {
+          "name": "scholarshipAvailable",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "university_programmes_universityID_universities_universityID_fk": {
+          "name": "university_programmes_universityID_universities_universityID_fk",
+          "tableFrom": "university_programmes",
+          "tableTo": "universities",
+          "columnsFrom": [
+            "universityID"
+          ],
+          "columnsTo": [
+            "universityID"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "university_programmes_programmeID_programmes_programmeID_fk": {
+          "name": "university_programmes_programmeID_programmes_programmeID_fk",
+          "tableFrom": "university_programmes",
+          "tableTo": "programmes",
+          "columnsFrom": [
+            "programmeID"
+          ],
+          "columnsTo": [
+            "programmeID"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},

@@ -41,7 +41,7 @@ const ApplicationWindowsRoutes = (app: Express) => {
     }
   });
 
-  // ✅ Update application window by ID
+  // Update application window by ID
   app.put("/application-window/:id", async (req: Request, res: Response, next: NextFunction) => {
     try {
       await updateWindowController(req, res);
@@ -51,7 +51,7 @@ const ApplicationWindowsRoutes = (app: Express) => {
     }
   });
 
-  // ✅ Delete application window by ID
+  //  Delete application window by ID
   app.delete("/application-window/:id", async (req: Request, res: Response, next: NextFunction) => {
     try {
       await deleteWindowController(req, res);

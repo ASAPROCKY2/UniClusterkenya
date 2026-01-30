@@ -1,4 +1,3 @@
-// src/programmes/programme.controller.ts
 import { Request, Response } from "express";
 import {
   createProgrammeService,
@@ -6,99 +5,292 @@ import {
   getProgrammeByIdService,
   updateProgrammeService,
   deleteProgrammeService,
-  getProgrammeWithApplicationsService,
+  getProgrammeLevelsService,
+  getProgrammeClustersService,
+  getProgrammesByLevelService,
+  getProgrammesByClusterService,
+  filterProgrammesService,
+  getApplicationsForProgrammeService,
+  getPlacementsForProgrammeService,
 } from "./programmes.service";
 
-// ✅ Create a new programme
-export const createProgrammeController = async (req: Request, res: Response) => {
+/* =============================
+   CREATE PROGRAMME
+============================= */
+export const createProgrammeController = async (
+  req: Request,
+  res: Response
+) => {
   try {
-    const programme = req.body;
+    const { clusterIDs, ...programme } = req.body;
 
     if (!programme.universityID || !programme.name) {
-      return res.status(400).json({ message: "University ID and programme name are required." });
+      return res.status(400).json({
+        message: "University ID and programme name are required.",
+      });
     }
 
-    const createdProgramme = await createProgrammeService(programme);
+    const created = await createProgrammeService({
+      programme,
+      clusterIDs,
+    });
 
-    return res.status(201).json({
+    res.status(201).json({
       message: "Programme created successfully",
-      data: createdProgramme,
+      data: created,
     });
   } catch (error: any) {
-    console.error("Error in createProgrammeController:", error);
-    return res.status(500).json({ error: error.message });
+    console.error("createProgrammeController:", error);
+    res.status(500).json({ error: error.message });
   }
 };
 
-// ✅ Get all programmes
-export const getAllProgrammesController = async (_req: Request, res: Response) => {
+/* =============================
+   GET ALL PROGRAMMES
+============================= */
+export const getAllProgrammesController = async (
+  _req: Request,
+  res: Response
+) => {
   try {
-    const programmes = await getAllProgrammesService();
-    return res.status(200).json({ data: programmes });
+    const rows = await getAllProgrammesService();
+    res.status(200).json({ data: rows });
   } catch (error: any) {
-    console.error("Error in getAllProgrammesController:", error);
-    return res.status(500).json({ error: error.message });
+    console.error("getAllProgrammesController:", error);
+    res.status(500).json({ error: error.message });
   }
 };
 
-// ✅ Get programme by ID
-export const getProgrammeByIdController = async (req: Request, res: Response) => {
+/* =============================
+   GET PROGRAMME BY ID
+============================= */
+export const getProgrammeByIdController = async (
+  req: Request,
+  res: Response
+) => {
   try {
-    const id = parseInt(req.params.id as string); // ✅ Cast to string
-    if (isNaN(id)) return res.status(400).json({ message: "Invalid programme ID." });
+    const programmeID = Number(req.params.id);
+    if (isNaN(programmeID)) {
+      return res.status(400).json({ message: "Invalid programme ID" });
+    }
 
-    const programme = await getProgrammeByIdService(id);
-    if (!programme) return res.status(404).json({ message: "Programme not found." });
+    const programme = await getProgrammeByIdService(programmeID);
+    if (!programme) {
+      return res.status(404).json({ message: "Programme not found" });
+    }
 
-    return res.status(200).json({ data: programme });
+    res.status(200).json({ data: programme });
   } catch (error: any) {
-    console.error("Error in getProgrammeByIdController:", error);
-    return res.status(500).json({ error: error.message });
+    console.error("getProgrammeByIdController:", error);
+    res.status(500).json({ error: error.message });
   }
 };
 
-// ✅ Update programme by ID
-export const updateProgrammeController = async (req: Request, res: Response) => {
+/* =============================
+   UPDATE PROGRAMME
+============================= */
+export const updateProgrammeController = async (
+  req: Request,
+  res: Response
+) => {
   try {
-    const id = parseInt(req.params.id as string); // Cast to string
-    if (isNaN(id)) return res.status(400).json({ message: "Invalid programme ID." });
+    const programmeID = Number(req.params.id);
+    if (isNaN(programmeID)) {
+      return res.status(400).json({ message: "Invalid programme ID" });
+    }
 
-    const updates = req.body;
-    const result = await updateProgrammeService(id, updates);
+    await updateProgrammeService(programmeID, req.body);
 
-    return res.status(200).json({ message: result });
+    res.status(200).json({
+      message: "Programme updated successfully",
+    });
   } catch (error: any) {
-    console.error("Error in updateProgrammeController:", error);
-    return res.status(500).json({ error: error.message });
+    console.error("updateProgrammeController:", error);
+    res.status(500).json({ error: error.message });
   }
 };
 
-// ✅ Delete programme by ID
-export const deleteProgrammeController = async (req: Request, res: Response) => {
+/* =============================
+   DELETE PROGRAMME
+============================= */
+export const deleteProgrammeController = async (
+  req: Request,
+  res: Response
+) => {
   try {
-    const id = parseInt(req.params.id as string); // ✅ Cast to string
-    if (isNaN(id)) return res.status(400).json({ message: "Invalid programme ID." });
+    const programmeID = Number(req.params.id);
+    if (isNaN(programmeID)) {
+      return res.status(400).json({ message: "Invalid programme ID" });
+    }
 
-    const result = await deleteProgrammeService(id);
-    return res.status(200).json({ message: result });
+    await deleteProgrammeService(programmeID);
+
+    res.status(200).json({
+      message: "Programme deleted successfully",
+    });
   } catch (error: any) {
-    console.error("Error in deleteProgrammeController:", error);
-    return res.status(500).json({ error: error.message });
+    console.error("deleteProgrammeController:", error);
+    res.status(500).json({ error: error.message });
   }
 };
 
-// ✅ Get programme with applications and placements
-export const getProgrammeWithApplicationsController = async (req: Request, res: Response) => {
+/* =============================
+   PROGRAMME LEVELS
+============================= */
+export const getProgrammeLevelsController = async (
+  _req: Request,
+  res: Response
+) => {
   try {
-    const programmeID = parseInt(req.params.id as string); // ✅ Cast to string
-    if (isNaN(programmeID)) return res.status(400).json({ message: "Invalid programme ID." });
-
-    const programme = await getProgrammeWithApplicationsService(programmeID);
-    if (!programme) return res.status(404).json({ message: "Programme not found." });
-
-    return res.status(200).json({ data: programme });
+    const levels = await getProgrammeLevelsService();
+    res.status(200).json({ data: levels });
   } catch (error: any) {
-    console.error("Error in getProgrammeWithApplicationsController:", error);
-    return res.status(500).json({ error: error.message });
+    console.error("getProgrammeLevelsController:", error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+/* =============================
+   PROGRAMME CLUSTERS
+============================= */
+export const getProgrammeClustersController = async (
+  _req: Request,
+  res: Response
+) => {
+  try {
+    const clusters = await getProgrammeClustersService();
+    res.status(200).json({ data: clusters });
+  } catch (error: any) {
+    console.error("getProgrammeClustersController:", error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+/* =============================
+   PROGRAMMES BY LEVEL
+============================= */
+export const getProgrammesByLevelController = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const levelParam = req.params.level;
+    const level =
+      Array.isArray(levelParam) ? levelParam[0] : levelParam;
+
+    if (!level) {
+      return res.status(400).json({
+        message: "Programme level is required",
+      });
+    }
+
+    const programmes = await getProgrammesByLevelService(level);
+    res.status(200).json({ data: programmes });
+  } catch (error: any) {
+    console.error("getProgrammesByLevelController:", error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+/* =============================
+   PROGRAMMES BY CLUSTER
+============================= */
+export const getProgrammesByClusterController = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const clusterID = Number(req.params.clusterID);
+    if (isNaN(clusterID)) {
+      return res.status(400).json({ message: "Invalid cluster ID" });
+    }
+
+    const programmes = await getProgrammesByClusterService(clusterID);
+    res.status(200).json({ data: programmes });
+  } catch (error: any) {
+    console.error("getProgrammesByClusterController:", error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+/* =============================
+   FILTER PROGRAMMES (FIXED)
+============================= */
+export const filterProgrammesController = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    // ✅ Normalize level safely
+    let level: string | undefined;
+    const levelQuery = req.query.level;
+
+    if (typeof levelQuery === "string") {
+      level = levelQuery;
+    } else if (Array.isArray(levelQuery) && typeof levelQuery[0] === "string") {
+      level = levelQuery[0];
+    }
+
+    // ✅ Normalize universityID safely
+    const universityID =
+      typeof req.query.universityID === "string"
+        ? Number(req.query.universityID)
+        : undefined;
+
+    const filters: {
+      level?: string;
+      universityID?: number;
+    } = {
+      level,
+      universityID,
+    };
+
+    const programmes = await filterProgrammesService(filters);
+    res.status(200).json({ data: programmes });
+  } catch (error: any) {
+    console.error("filterProgrammesController:", error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+/* =============================
+   APPLICATIONS FOR PROGRAMME
+============================= */
+export const getApplicationsForProgrammeController = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const programmeID = Number(req.params.id);
+    if (isNaN(programmeID)) {
+      return res.status(400).json({ message: "Invalid programme ID" });
+    }
+
+    const applications = await getApplicationsForProgrammeService(programmeID);
+    res.status(200).json({ data: applications });
+  } catch (error: any) {
+    console.error("getApplicationsForProgrammeController:", error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+/* =============================
+   PLACEMENTS FOR PROGRAMME
+============================= */
+export const getPlacementsForProgrammeController = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const programmeID = Number(req.params.id);
+    if (isNaN(programmeID)) {
+      return res.status(400).json({ message: "Invalid programme ID" });
+    }
+
+    const placements = await getPlacementsForProgrammeService(programmeID);
+    res.status(200).json({ data: placements });
+  } catch (error: any) {
+    console.error("getPlacementsForProgrammeController:", error);
+    res.status(500).json({ error: error.message });
   }
 };

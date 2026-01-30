@@ -1,3 +1,5 @@
+// src/placements/placement.service.ts
+
 import { eq } from "drizzle-orm";
 import db from "../Drizzle/db";
 import { PlacementsTable } from "../Drizzle/schema";
@@ -5,11 +7,17 @@ import { PlacementsTable } from "../Drizzle/schema";
 /* =============================
    CREATE A NEW PLACEMENT
 ============================= */
-export const createPlacementService = async (placement: any) => {
+export const createPlacementService = async (placement: {
+  userID: number;
+  programmeID: number;
+  placementStatus?: string;
+  placementDate?: string;
+}) => {
   const [newPlacement] = await db
     .insert(PlacementsTable)
     .values(placement)
     .returning();
+
   return newPlacement;
 };
 
@@ -19,7 +27,7 @@ export const createPlacementService = async (placement: any) => {
 export const getAllPlacementsService = async () => {
   return await db.query.PlacementsTable.findMany({
     with: {
-      student: true,
+      student: true,   // 👉 resolves to UsersTable
       programme: true,
     },
   });
@@ -41,10 +49,19 @@ export const getPlacementByIdService = async (id: number) => {
 /* =============================
    UPDATE PLACEMENT BY ID
 ============================= */
-export const updatePlacementService = async (id: number, data: Partial<any>) => {
-  await db.update(PlacementsTable)
+export const updatePlacementService = async (
+  id: number,
+  data: Partial<{
+    programmeID: number;
+    placementStatus: string;
+    placementDate: string;
+  }>
+) => {
+  await db
+    .update(PlacementsTable)
     .set(data)
     .where(eq(PlacementsTable.placementID, id));
+
   return "Placement updated successfully";
 };
 
@@ -52,17 +69,19 @@ export const updatePlacementService = async (id: number, data: Partial<any>) => 
    DELETE PLACEMENT BY ID
 ============================= */
 export const deletePlacementService = async (id: number) => {
-  await db.delete(PlacementsTable)
+  await db
+    .delete(PlacementsTable)
     .where(eq(PlacementsTable.placementID, id));
+
   return "Placement deleted successfully";
 };
 
 /* =============================
-   GET ALL PLACEMENTS FOR A STUDENT
+   GET ALL PLACEMENTS FOR A USER
 ============================= */
-export const getStudentPlacementsService = async (studentID: number) => {
+export const getUserPlacementsService = async (userID: number) => {
   return await db.query.PlacementsTable.findMany({
-    where: eq(PlacementsTable.studentID, studentID),
+    where: eq(PlacementsTable.userID, userID),
     with: {
       student: true,
       programme: true,

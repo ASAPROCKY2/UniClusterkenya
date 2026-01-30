@@ -1,70 +1,85 @@
 // src/kcseresults/kcseresults.service.ts
-
 import { eq } from "drizzle-orm";
 import db from "../Drizzle/db";
 import { KcseResultsTable } from "../Drizzle/schema";
 
 /* =============================
-   CREATE A NEW KCSE RESULT
-============================= */
-export const createKcseResultService = async (kcseResult: any) => {
-  const [newResult] = await db
-    .insert(KcseResultsTable)
-    .values(kcseResult)
-    .returning();
-  return newResult;
+   CREATE NEW KCSE RESULTS (ONE OR MANY)
+============================ */
+export const createKcseResultsService = async (payload: {
+  userID: number;
+  results: {
+    subjectCode: string;
+    subjectName: string;
+    grade: string;
+    points: number;
+  }[];
+}) => {
+  const { userID, results } = payload;
+
+  const rows = results.map((r) => ({
+    userID,
+    subjectCode: r.subjectCode,
+    subjectName: r.subjectName,
+    grade: r.grade,
+    points: r.points,
+  }));
+
+  const newResults = await db.insert(KcseResultsTable).values(rows).returning();
+
+  return newResults;
 };
 
 /* =============================
    GET ALL KCSE RESULTS
-============================= */
+============================ */
 export const getAllKcseResultsService = async () => {
+  return await db.query.KcseResultsTable.findMany();
+};
+
+/* =============================
+   GET KCSE RESULTS BY USER ID
+============================ */
+export const getKcseResultsByUserIdService = async (userID: number) => {
   return await db.query.KcseResultsTable.findMany({
-    with: {
-      student: true, // include related student info
-    },
+    where: eq(KcseResultsTable.userID, userID),
   });
 };
 
 /* =============================
-   GET KCSE RESULT BY ID
-============================= */
-export const getKcseResultByIdService = async (id: number) => {
-  return await db.query.KcseResultsTable.findFirst({
-    where: eq(KcseResultsTable.resultID, id),
-    with: {
-      student: true,
-    },
-  });
-};
-
-/* =============================
-   UPDATE KCSE RESULT BY ID
-============================= */
-export const updateKcseResultService = async (id: number, data: Partial<any>) => {
+   UPDATE KCSE RESULTS BY USER ID
+============================ */
+export const updateKcseResultsByUserIdService = async (
+  userID: number,
+  data: Partial<{
+    subjectCode: string;
+    subjectName: string;
+    grade: string;
+    points: number;
+  }>
+) => {
   await db.update(KcseResultsTable)
     .set(data)
-    .where(eq(KcseResultsTable.resultID, id));
+    .where(eq(KcseResultsTable.userID, userID));
+
   return "KCSE result updated successfully";
 };
 
 /* =============================
-   DELETE KCSE RESULT BY ID
-============================= */
-export const deleteKcseResultService = async (id: number) => {
+   DELETE KCSE RESULTS BY USER ID
+============================ */
+export const deleteKcseResultsByUserIdService = async (userID: number) => {
   await db.delete(KcseResultsTable)
-    .where(eq(KcseResultsTable.resultID, id));
+    .where(eq(KcseResultsTable.userID, userID));
+
   return "KCSE result deleted successfully";
 };
 
 /* =============================
    GET ALL RESULTS FOR A STUDENT
-============================= */
-export const getStudentKcseResultsService = async (studentID: number) => {
+============================ */
+export const getStudentKcseResultsService = async (userID: number) => {
   return await db.query.KcseResultsTable.findMany({
-    where: eq(KcseResultsTable.studentID, studentID),
-    with: {
-      student: true, // include student info
-    },
+    where: eq(KcseResultsTable.userID, userID),
   });
 };

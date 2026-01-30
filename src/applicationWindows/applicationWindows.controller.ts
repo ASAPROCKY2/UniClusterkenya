@@ -41,7 +41,7 @@ export const getAllWindowsController = async (_req: Request, res: Response) => {
   }
 };
 
-// ✅ Get application window by ID
+//  Get application window by ID
 export const getWindowByIdController = async (req: Request, res: Response) => {
   try {
     const id = parseInt(req.params.id as string);

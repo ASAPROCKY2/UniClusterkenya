@@ -7,11 +7,12 @@ import {
   updateUniversityController,
   deleteUniversityController,
   getUniversityWithProgrammesController,
+  getUniversitiesByProgrammeController,
 } from "./universities.controller";
 
 const UniversityRoutes = (app: Express) => {
   
-  //  Create a new university
+  // Create a new university
   app.post("/university", async (req: Request, res: Response, next: NextFunction) => {
     try {
       await createUniversityController(req, res);
@@ -21,7 +22,7 @@ const UniversityRoutes = (app: Express) => {
     }
   });
 
-  //  Get all universities
+  // Get all universities
   app.get("/university", async (req: Request, res: Response, next: NextFunction) => {
     try {
       await getAllUniversitiesController(req, res);
@@ -31,7 +32,7 @@ const UniversityRoutes = (app: Express) => {
     }
   });
 
-  //  Get university by ID
+  // Get university by ID
   app.get("/university/:id", async (req: Request, res: Response, next: NextFunction) => {
     try {
       await getUniversityByIdController(req, res);
@@ -41,7 +42,7 @@ const UniversityRoutes = (app: Express) => {
     }
   });
 
-  //  Update university by ID
+  // Update university by ID
   app.put("/university/:id", async (req: Request, res: Response, next: NextFunction) => {
     try {
       await updateUniversityController(req, res);
@@ -71,6 +72,21 @@ const UniversityRoutes = (app: Express) => {
     }
   });
 
+  // Get universities offering a specific programme
+  app.get(
+    "/university/programme/:programmeID",
+    async (req: Request, res: Response, next: NextFunction) => {
+      try {
+        await getUniversitiesByProgrammeController(req, res);
+      } catch (error) {
+        console.error(
+          `Error in GET /university/programme/${req.params.programmeID}:`,
+          error
+        );
+        next(error);
+      }
+    }
+  );
 };
 
 export default UniversityRoutes;

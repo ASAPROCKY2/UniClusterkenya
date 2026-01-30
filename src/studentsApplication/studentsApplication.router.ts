@@ -7,7 +7,7 @@ import {
   getApplicationByIdController,
   updateApplicationController,
   deleteApplicationController,
-  getStudentApplicationsController,
+  getUserApplicationsController,
 } from "./studentsApplication.controller";
 
 const ApplicationsRoutes = (app: Express) => {
@@ -65,7 +65,7 @@ const ApplicationsRoutes = (app: Express) => {
   //  Get all applications for a specific student
   app.get("/application/student/:studentID", async (req: Request, res: Response, next: NextFunction) => {
     try {
-      await getStudentApplicationsController(req, res);
+      await getUserApplicationsController(req, res);
     } catch (error) {
       console.error(`Error in GET /application/student/${req.params.studentID}:`, error);
       next(error);

@@ -1,4 +1,3 @@
-// src/programmes/programme.router.ts
 import { Express, Request, Response, NextFunction } from "express";
 import {
   createProgrammeController,
@@ -6,67 +5,107 @@ import {
   getProgrammeByIdController,
   updateProgrammeController,
   deleteProgrammeController,
-  getProgrammeWithApplicationsController,
+  getProgrammeLevelsController,
+  getProgrammeClustersController,
+  getProgrammesByLevelController,
+  getProgrammesByClusterController,
+  filterProgrammesController,
 } from "./programmes.controller";
 
 const ProgrammeRoutes = (app: Express) => {
-  
-  // ✅ Create a new programme
-  app.post("/programme", async (req: Request, res: Response, next: NextFunction) => {
+
+  /* =============================
+     CREATE & LIST
+  ============================= */
+
+  app.post("/programme", async (req, res, next) => {
     try {
       await createProgrammeController(req, res);
     } catch (error) {
-      console.error("Error in POST /programme:", error);
       next(error);
     }
   });
 
-  // ✅ Get all programmes
-  app.get("/programme", async (req: Request, res: Response, next: NextFunction) => {
+  app.get("/programme", async (req, res, next) => {
     try {
       await getAllProgrammesController(req, res);
     } catch (error) {
-      console.error("Error in GET /programme:", error);
       next(error);
     }
   });
 
-  // ✅ Get programme by ID
-  app.get("/programme/:id", async (req: Request, res: Response, next: NextFunction) => {
+  /* =============================
+     STATIC ROUTES (MUST COME FIRST)
+  ============================= */
+
+  app.get("/programme/levels", async (req, res, next) => {
+    try {
+      await getProgrammeLevelsController(req, res);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.get("/programme/clusters", async (req, res, next) => {
+    try {
+      await getProgrammeClustersController(req, res);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.get("/programme/filter", async (req, res, next) => {
+    try {
+      await filterProgrammesController(req, res);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  /* =============================
+     SEMI-DYNAMIC ROUTES
+  ============================= */
+
+  app.get("/programme/level/:level", async (req, res, next) => {
+    try {
+      await getProgrammesByLevelController(req, res);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.get("/programme/cluster/:clusterID", async (req, res, next) => {
+    try {
+      await getProgrammesByClusterController(req, res);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  /* =============================
+     DYNAMIC ID ROUTES (LAST)
+  ============================= */
+
+  app.get("/programme/:id", async (req, res, next) => {
     try {
       await getProgrammeByIdController(req, res);
     } catch (error) {
-      console.error(`Error in GET /programme/${req.params.id}:`, error);
       next(error);
     }
   });
 
-  // ✅ Update programme by ID
-  app.put("/programme/:id", async (req: Request, res: Response, next: NextFunction) => {
+  app.put("/programme/:id", async (req, res, next) => {
     try {
       await updateProgrammeController(req, res);
     } catch (error) {
-      console.error(`Error in PUT /programme/${req.params.id}:`, error);
       next(error);
     }
   });
 
-  // ✅ Delete programme by ID
-  app.delete("/programme/:id", async (req: Request, res: Response, next: NextFunction) => {
+  app.delete("/programme/:id", async (req, res, next) => {
     try {
       await deleteProgrammeController(req, res);
     } catch (error) {
-      console.error(`Error in DELETE /programme/${req.params.id}:`, error);
-      next(error);
-    }
-  });
-
-  // ✅ Get programme with applications and placements
-  app.get("/programme/full/:id", async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      await getProgrammeWithApplicationsController(req, res);
-    } catch (error) {
-      console.error(`Error in GET /programme/full/${req.params.id}:`, error);
       next(error);
     }
   });

@@ -1,29 +1,48 @@
-// src/kcseresults/kcseresults.controller.ts
-
 import { Request, Response } from "express";
 import {
-  createKcseResultService,
+  createKcseResultsService,
   getAllKcseResultsService,
-  getKcseResultByIdService,
-  updateKcseResultService,
-  deleteKcseResultService,
+  getKcseResultsByUserIdService,
+  updateKcseResultsByUserIdService,
+  deleteKcseResultsByUserIdService,
   getStudentKcseResultsService,
 } from "./KcseResults.service";
 
-// ✅ Create a new KCSE result
+/* =============================
+   CREATE KCSE RESULTS (BULK)
+============================ */
 export const createKcseResultController = async (req: Request, res: Response) => {
   try {
-    const kcseResult = req.body;
+    const { userID, results } = req.body;
 
-    if (!kcseResult.studentID || !kcseResult.subjectCode || !kcseResult.grade || !kcseResult.points) {
-      return res.status(400).json({ message: "Student ID, subject code, grade, and points are required." });
+    if (!userID || !Array.isArray(results) || results.length === 0) {
+      return res.status(400).json({
+        message: "Student ID and results array are required.",
+      });
     }
 
-    const createdResult = await createKcseResultService(kcseResult);
+    for (const r of results) {
+      if (
+        !r.subjectCode ||
+        !r.subjectName ||
+        !r.grade ||
+        r.points === undefined
+      ) {
+        return res.status(400).json({
+          message:
+            "Each result must include subject code, subject name, grade, and points.",
+        });
+      }
+    }
+
+    const createdResults = await createKcseResultsService({
+      userID,
+      results,
+    });
 
     return res.status(201).json({
-      message: "KCSE result created successfully",
-      data: createdResult,
+      message: "KCSE results created successfully",
+      data: createdResults,
     });
   } catch (error: any) {
     console.error("Error in createKcseResultController:", error);
@@ -31,7 +50,9 @@ export const createKcseResultController = async (req: Request, res: Response) =>
   }
 };
 
-// ✅ Get all KCSE results
+/* =============================
+   GET ALL KCSE RESULTS
+============================ */
 export const getAllKcseResultsController = async (_req: Request, res: Response) => {
   try {
     const results = await getAllKcseResultsService();
@@ -42,59 +63,77 @@ export const getAllKcseResultsController = async (_req: Request, res: Response) 
   }
 };
 
-// ✅ Get KCSE result by ID
-export const getKcseResultByIdController = async (req: Request, res: Response) => {
+/* =============================
+   GET KCSE RESULTS BY USER ID
+============================ */
+export const getKcseResultsByUserIdController = async (req: Request, res: Response) => {
   try {
-    const id = parseInt(req.params.id as string);
-    if (isNaN(id)) return res.status(400).json({ message: "Invalid KCSE result ID." });
+    const userID = Number(req.params.userID);
+    if (isNaN(userID)) {
+      return res.status(400).json({ message: "Invalid student ID." });
+    }
 
-    const result = await getKcseResultByIdService(id);
-    if (!result) return res.status(404).json({ message: "KCSE result not found." });
+    const results = await getKcseResultsByUserIdService(userID);
+    if (!results || results.length === 0) {
+      return res.status(404).json({ message: "KCSE results not found." });
+    }
 
-    return res.status(200).json({ data: result });
+    return res.status(200).json({ data: results });
   } catch (error: any) {
-    console.error("Error in getKcseResultByIdController:", error);
+    console.error("Error in getKcseResultsByUserIdController:", error);
     return res.status(500).json({ error: error.message });
   }
 };
 
-// ✅ Update KCSE result by ID
-export const updateKcseResultController = async (req: Request, res: Response) => {
+/* =============================
+   UPDATE KCSE RESULTS BY USER ID
+============================ */
+export const updateKcseResultsByUserIdController = async (req: Request, res: Response) => {
   try {
-    const id = parseInt(req.params.id as string);
-    if (isNaN(id)) return res.status(400).json({ message: "Invalid KCSE result ID." });
+    const userID = Number(req.params.userID);
+    if (isNaN(userID)) {
+      return res.status(400).json({ message: "Invalid student ID." });
+    }
 
     const updates = req.body;
-    const result = await updateKcseResultService(id, updates);
+    const result = await updateKcseResultsByUserIdService(userID, updates);
 
     return res.status(200).json({ message: result });
   } catch (error: any) {
-    console.error("Error in updateKcseResultController:", error);
+    console.error("Error in updateKcseResultsByUserIdController:", error);
     return res.status(500).json({ error: error.message });
   }
 };
 
-// ✅ Delete KCSE result by ID
-export const deleteKcseResultController = async (req: Request, res: Response) => {
+/* =============================
+   DELETE KCSE RESULTS BY USER ID
+============================ */
+export const deleteKcseResultsByUserIdController = async (req: Request, res: Response) => {
   try {
-    const id = parseInt(req.params.id as string);
-    if (isNaN(id)) return res.status(400).json({ message: "Invalid KCSE result ID." });
+    const userID = Number(req.params.userID);
+    if (isNaN(userID)) {
+      return res.status(400).json({ message: "Invalid student ID." });
+    }
 
-    const result = await deleteKcseResultService(id);
+    const result = await deleteKcseResultsByUserIdService(userID);
     return res.status(200).json({ message: result });
   } catch (error: any) {
-    console.error("Error in deleteKcseResultController:", error);
+    console.error("Error in deleteKcseResultsByUserIdController:", error);
     return res.status(500).json({ error: error.message });
   }
 };
 
-// ✅ Get all KCSE results for a specific student
+/* =============================
+   GET ALL KCSE RESULTS FOR A STUDENT
+============================ */
 export const getStudentKcseResultsController = async (req: Request, res: Response) => {
   try {
-    const studentID = parseInt(req.params.studentID as string);
-    if (isNaN(studentID)) return res.status(400).json({ message: "Invalid student ID." });
+    const userID = Number(req.params.userID);
+    if (isNaN(userID)) {
+      return res.status(400).json({ message: "Invalid student ID." });
+    }
 
-    const results = await getStudentKcseResultsService(studentID);
+    const results = await getStudentKcseResultsService(userID);
     return res.status(200).json({ data: results });
   } catch (error: any) {
     console.error("Error in getStudentKcseResultsController:", error);
