@@ -75,10 +75,7 @@ export const UniversitiesTable = pgTable("universities", {
   helbEligible: boolean("helbEligible").default(false),
 });
 
-/* =============================
-   PROGRAMMES TABLE
-   (Removed universityID for many-to-many)
-============================= */
+
 export const ProgrammesTable = pgTable("programmes", {
   programmeID: serial("programmeID").primaryKey(),
   name: varchar("name", { length: 100 }).notNull(),

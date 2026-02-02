@@ -9,40 +9,41 @@ import {
   getUserApplicationsService,
 } from "./studentsApplication.service";
 
-//  Helper to safely parse IDs from req.params
+// Helper to safely parse IDs from req.params
 const parseID = (value: string | string[] | undefined): number | null => {
   if (!value) return null;
-  const str = Array.isArray(value) ? value[0] : value; // take first element if array
+  const str = Array.isArray(value) ? value[0] : value;
   const id = parseInt(str, 10);
   return isNaN(id) ? null : id;
 };
 
-//  Create a new application
-export const createApplicationController = async (req: Request, res: Response) => {
+/* =============================
+   CREATE APPLICATION
+============================= */
+export const createApplicationController = async (
+  req: Request,
+  res: Response
+) => {
   try {
-    const { userID, studentID, programmeID, choiceOrder, applicationDate, status, clusterScore } = req.body;
+    const { userID, studentID, programmeID, choiceOrder, status, clusterScore } = req.body;
 
+    // Accept either userID or studentID (both refer to UsersTable)
     const finalUserID = userID || studentID;
 
-    // Validate required fields
-    if (!finalUserID || !programmeID || !choiceOrder || !applicationDate) {
+    if (!finalUserID || !programmeID || !choiceOrder) {
       return res.status(400).json({
-        message: "User ID, programme ID, choice order, and application date are required.",
+        message: "User ID, programme ID, and choice order are required.",
       });
     }
 
-    // Validate applicationDate format
-    const parsedDate = new Date(applicationDate);
-    if (isNaN(parsedDate.getTime())) {
-      return res.status(400).json({ message: "Invalid applicationDate format." });
-    }
+    // Backend-controlled application date
+    const applicationDate = new Date().toISOString().split("T")[0];
 
-    // Pass applicationDate as string (YYYY-MM-DD) to service
     const applicationData = {
       userID: finalUserID,
       programmeID,
       choiceOrder,
-      applicationDate: parsedDate.toISOString().split("T")[0], // format to "YYYY-MM-DD"
+      applicationDate,
       status: status || "Pending",
       clusterScore: clusterScore || null,
     };
@@ -59,7 +60,9 @@ export const createApplicationController = async (req: Request, res: Response) =
   }
 };
 
-// ✅ Get all applications
+/* =============================
+   GET ALL APPLICATIONS
+============================= */
 export const getAllApplicationsController = async (_req: Request, res: Response) => {
   try {
     const applications = await getAllApplicationsService();
@@ -70,7 +73,9 @@ export const getAllApplicationsController = async (_req: Request, res: Response)
   }
 };
 
-// ✅ Get application by ID
+/* =============================
+   GET APPLICATION BY ID
+============================= */
 export const getApplicationByIdController = async (req: Request, res: Response) => {
   try {
     const id = parseID(req.params.id);
@@ -86,7 +91,9 @@ export const getApplicationByIdController = async (req: Request, res: Response) 
   }
 };
 
-// ✅ Update application by ID
+/* =============================
+   UPDATE APPLICATION
+============================= */
 export const updateApplicationController = async (req: Request, res: Response) => {
   try {
     const id = parseID(req.params.id);
@@ -94,13 +101,13 @@ export const updateApplicationController = async (req: Request, res: Response) =
 
     const updates = { ...req.body };
 
-    // If updating applicationDate, validate and convert to string
+    // Optional: validate applicationDate if manually updated
     if (updates.applicationDate) {
       const parsedDate = new Date(updates.applicationDate);
       if (isNaN(parsedDate.getTime())) {
         return res.status(400).json({ message: "Invalid applicationDate format." });
       }
-      updates.applicationDate = parsedDate.toISOString().split("T")[0]; // format to "YYYY-MM-DD"
+      updates.applicationDate = parsedDate.toISOString().split("T")[0];
     }
 
     const result = await updateApplicationService(id, updates);
@@ -111,7 +118,9 @@ export const updateApplicationController = async (req: Request, res: Response) =
   }
 };
 
-// ✅ Delete application by ID
+/* =============================
+   DELETE APPLICATION
+============================= */
 export const deleteApplicationController = async (req: Request, res: Response) => {
   try {
     const id = parseID(req.params.id);
@@ -125,10 +134,13 @@ export const deleteApplicationController = async (req: Request, res: Response) =
   }
 };
 
-// ✅ Get all applications for a specific user
+/* =============================
+   GET APPLICATIONS BY USER
+============================= */
 export const getUserApplicationsController = async (req: Request, res: Response) => {
   try {
-    const userID = parseID(req.params.userID);
+    // ✅ Match router param name
+    const userID = parseID(req.params.studentID);
     if (!userID) return res.status(400).json({ message: "Invalid user ID." });
 
     const applications = await getUserApplicationsService(userID);

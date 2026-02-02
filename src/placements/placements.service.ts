@@ -2,7 +2,12 @@
 
 import { eq } from "drizzle-orm";
 import db from "../Drizzle/db";
-import { PlacementsTable } from "../Drizzle/schema";
+import {
+  PlacementsTable,
+  UniversityProgrammesTable,
+  UniversitiesTable,
+  ProgrammesTable,
+} from "../Drizzle/schema";
 
 /* =============================
    CREATE A NEW PLACEMENT
@@ -27,8 +32,16 @@ export const createPlacementService = async (placement: {
 export const getAllPlacementsService = async () => {
   return await db.query.PlacementsTable.findMany({
     with: {
-      student: true,   // 👉 resolves to UsersTable
-      programme: true,
+      student: true, // resolves to UsersTable
+      programme: {
+        with: {
+          universityProgrammes: {
+            with: {
+              university: true,
+            },
+          },
+        },
+      },
     },
   });
 };
@@ -41,7 +54,15 @@ export const getPlacementByIdService = async (id: number) => {
     where: eq(PlacementsTable.placementID, id),
     with: {
       student: true,
-      programme: true,
+      programme: {
+        with: {
+          universityProgrammes: {
+            with: {
+              university: true,
+            },
+          },
+        },
+      },
     },
   });
 };
@@ -80,11 +101,26 @@ export const deletePlacementService = async (id: number) => {
    GET ALL PLACEMENTS FOR A USER
 ============================= */
 export const getUserPlacementsService = async (userID: number) => {
-  return await db.query.PlacementsTable.findMany({
+  const placements = await db.query.PlacementsTable.findMany({
     where: eq(PlacementsTable.userID, userID),
     with: {
       student: true,
-      programme: true,
+      programme: {
+        with: {
+          universityProgrammes: {
+            with: {
+              university: true,
+            },
+          },
+        },
+      },
     },
   });
+
+  // Flatten to make frontend access easier
+  return placements.map((placement) => ({
+    ...placement,
+    university:
+      placement.programme.universityProgrammes?.[0]?.university || null,
+  }));
 };

@@ -97,7 +97,7 @@ export const userLoginService = async (data: {
   const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
   if (!isPasswordValid) throw new Error("Incorrect password");
 
-  // 4️⃣ Return relevant info
+  // 4️⃣ Return relevant info including gender & highSchool
   return {
     userID: user.userID,
     email: user.email,
@@ -107,7 +107,10 @@ export const userLoginService = async (data: {
     kcseIndex: user.kcseIndex,
     agp: user.agp,
     meanGrade: user.meanGrade,
-    image_url: user.photoURL,
+    photoURL: user.photoURL,        // ✅ consistent with front-end
+    gender: user.gender || null,    // ✅ added
+    highSchool: user.highSchool || null, // ✅ added
+    createdAt: user.createdAt,      // optional but useful
   };
 };
 

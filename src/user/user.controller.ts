@@ -13,11 +13,23 @@ import {
 } from "../user/user.service";
 
 //
-//  Create a new user
+// 🧩 Create a new user
 //
 export const createUserController = async (req: Request, res: Response) => {
   try {
-    const { firstName, lastName, email, password, role, kcseIndex, agp, meanGrade, photoURL } = req.body;
+    const {
+      firstName,
+      lastName,
+      email,
+      password,
+      role,
+      kcseIndex,
+      agp,
+      meanGrade,
+      photoURL,
+      gender,
+      highSchool,
+    } = req.body;
 
     if (!email || !password) {
       return res.status(400).json({ error: "Email and password are required." });
@@ -42,6 +54,8 @@ export const createUserController = async (req: Request, res: Response) => {
       agp: agp || null,
       meanGrade: meanGrade || null,
       photoURL: photoURL || null,
+      gender: gender || null,           // ✅ added
+      highSchool: highSchool || null,   // ✅ added
     };
 
     await createUserService(newUser);
@@ -50,13 +64,13 @@ export const createUserController = async (req: Request, res: Response) => {
       message: "User created successfully. Verification code sent to email.",
     });
   } catch (error: any) {
-    console.error(" Error in createUserController:", error);
+    console.error("❌ Error in createUserController:", error);
     return res.status(500).json({ error: error.message });
   }
 };
 
 //
-//  Verify user
+// 🧩 Verify user
 //
 export const verifyUserController = async (req: Request, res: Response) => {
   try {
@@ -90,7 +104,11 @@ export const userLoginController = async (req: Request, res: Response) => {
     }
 
     // Validate user login
-    const userData = await userLoginService({ email, kcseIndex: kcseIndex || "", password });
+    const userData = await userLoginService({
+      email,
+      kcseIndex: kcseIndex || "",
+      password,
+    });
 
     // Generate JWT
     const secret = process.env.JWT_SECRET;
@@ -104,7 +122,9 @@ export const userLoginController = async (req: Request, res: Response) => {
         firstName: userData.firstName,
         lastName: userData.lastName,
         kcseIndex: userData.kcseIndex,
-        image_url: userData.image_url,
+        photoURL: userData.photoURL,       // ✅ updated
+        gender: userData.gender,           // ✅ added
+        highSchool: userData.highSchool,   // ✅ added
       },
       secret,
       { expiresIn: "1h" }

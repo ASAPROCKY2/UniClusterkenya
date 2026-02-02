@@ -12,7 +12,7 @@ import {
 
 const ApplicationsRoutes = (app: Express) => {
   
-  // ✅ Create a new student application
+  //  Create a new student application
   app.post("/application", async (req: Request, res: Response, next: NextFunction) => {
     try {
       await createApplicationController(req, res);
@@ -52,7 +52,7 @@ const ApplicationsRoutes = (app: Express) => {
     }
   });
 
-  // ✅ Delete application by ID
+  //  Delete application by ID
   app.delete("/application/:id", async (req: Request, res: Response, next: NextFunction) => {
     try {
       await deleteApplicationController(req, res);
