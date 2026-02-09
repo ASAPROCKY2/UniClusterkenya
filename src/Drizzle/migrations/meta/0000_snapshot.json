@@ -1,5 +1,5 @@
 {
-  "id": "c8f7afd9-b9e5-497b-9832-0a018a6b4030",
+  "id": "89e04d3c-74ad-4ab9-b80c-996d0159d2b4",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -38,10 +38,42 @@
           "primaryKey": false,
           "notNull": false,
           "default": false
+        },
+        "programmeID": {
+          "name": "programmeID",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "totalSlots": {
+          "name": "totalSlots",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "availableSlots": {
+          "name": "availableSlots",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
         }
       },
       "indexes": {},
-      "foreignKeys": {},
+      "foreignKeys": {
+        "application_windows_programmeID_programmes_programmeID_fk": {
+          "name": "application_windows_programmeID_programmes_programmeID_fk",
+          "tableFrom": "application_windows",
+          "tableTo": "programmes",
+          "columnsFrom": [
+            "programmeID"
+          ],
+          "columnsTo": [
+            "programmeID"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
@@ -90,10 +122,11 @@
         },
         "status": {
           "name": "status",
-          "type": "varchar(50)",
+          "type": "application_status",
+          "typeSchema": "public",
           "primaryKey": false,
           "notNull": false,
-          "default": "'Pending'"
+          "default": "'pending'"
         },
         "clusterScore": {
           "name": "clusterScore",
@@ -285,18 +318,30 @@
           "primaryKey": false,
           "notNull": true
         },
-        "placementStatus": {
-          "name": "placementStatus",
-          "type": "varchar(50)",
+        "universityID": {
+          "name": "universityID",
+          "type": "integer",
           "primaryKey": false,
-          "notNull": false,
-          "default": "'Not Placed'"
+          "notNull": true
+        },
+        "applicationID": {
+          "name": "applicationID",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "year": {
+          "name": "year",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
         },
         "placementDate": {
           "name": "placementDate",
-          "type": "date",
+          "type": "timestamp",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "default": "now()"
         }
       },
       "indexes": {},
@@ -323,6 +368,32 @@
           ],
           "columnsTo": [
             "programmeID"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "placements_universityID_universities_universityID_fk": {
+          "name": "placements_universityID_universities_universityID_fk",
+          "tableFrom": "placements",
+          "tableTo": "universities",
+          "columnsFrom": [
+            "universityID"
+          ],
+          "columnsTo": [
+            "universityID"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "placements_applicationID_applications_applicationID_fk": {
+          "name": "placements_applicationID_applications_applicationID_fk",
+          "tableFrom": "placements",
+          "tableTo": "applications",
+          "columnsFrom": [
+            "applicationID"
+          ],
+          "columnsTo": [
+            "applicationID"
           ],
           "onDelete": "cascade",
           "onUpdate": "no action"
@@ -652,6 +723,19 @@
           "primaryKey": false,
           "notNull": false,
           "default": false
+        },
+        "capacity": {
+          "name": "capacity",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "filledSlots": {
+          "name": "filledSlots",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
         }
       },
       "indexes": {},
@@ -831,6 +915,17 @@
     }
   },
   "enums": {
+    "public.application_status": {
+      "name": "application_status",
+      "schema": "public",
+      "values": [
+        "pending",
+        "placed",
+        "not_placed",
+        "withdrawn",
+        "rejected"
+      ]
+    },
     "public.role": {
       "name": "role",
       "schema": "public",

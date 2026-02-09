@@ -7,7 +7,7 @@ import {
   deleteSystemAdminService,
 } from "./systemAdmins.service";
 
-// ✅ Create a new system admin
+// Create a new system admin
 export const createSystemAdminController = async (req: Request, res: Response) => {
   try {
     const admin = req.body;
@@ -31,7 +31,7 @@ export const createSystemAdminController = async (req: Request, res: Response) =
   }
 };
 
-// ✅ Get all system admins
+//  Get all system admins
 export const getAllSystemAdminsController = async (_req: Request, res: Response) => {
   try {
     const admins = await getAllSystemAdminsService();
@@ -42,7 +42,7 @@ export const getAllSystemAdminsController = async (_req: Request, res: Response)
   }
 };
 
-// ✅ Get system admin by ID
+//  Get system admin by ID
 export const getSystemAdminByIdController = async (req: Request, res: Response) => {
   try {
     const id = parseInt(req.params.id as string);
@@ -62,7 +62,7 @@ export const getSystemAdminByIdController = async (req: Request, res: Response) 
   }
 };
 
-// ✅ Update system admin by ID
+//  Update system admin by ID
 export const updateSystemAdminController = async (req: Request, res: Response) => {
   try {
     const id = parseInt(req.params.id as string);
@@ -80,7 +80,7 @@ export const updateSystemAdminController = async (req: Request, res: Response) =
   }
 };
 
-// ✅ Delete system admin by ID
+//  Delete system admin by ID
 export const deleteSystemAdminController = async (req: Request, res: Response) => {
   try {
     const id = parseInt(req.params.id as string);

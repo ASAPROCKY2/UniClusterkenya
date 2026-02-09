@@ -31,18 +31,25 @@ export const createKcseResultsService = async (payload: {
 };
 
 /* =============================
-   GET ALL KCSE RESULTS
+   GET ALL KCSE RESULTS (WITH STUDENT INFO)
 ============================ */
 export const getAllKcseResultsService = async () => {
-  return await db.query.KcseResultsTable.findMany();
+  return await db.query.KcseResultsTable.findMany({
+    with: {
+      student: true, // <-- include full student details
+    },
+  });
 };
 
 /* =============================
-   GET KCSE RESULTS BY USER ID
+   GET KCSE RESULTS BY USER ID (WITH STUDENT INFO)
 ============================ */
 export const getKcseResultsByUserIdService = async (userID: number) => {
   return await db.query.KcseResultsTable.findMany({
     where: eq(KcseResultsTable.userID, userID),
+    with: {
+      student: true, // <-- include full student details
+    },
   });
 };
 
@@ -76,10 +83,13 @@ export const deleteKcseResultsByUserIdService = async (userID: number) => {
 };
 
 /* =============================
-   GET ALL RESULTS FOR A STUDENT
+   GET ALL RESULTS FOR A STUDENT (WITH STUDENT INFO)
 ============================ */
 export const getStudentKcseResultsService = async (userID: number) => {
   return await db.query.KcseResultsTable.findMany({
     where: eq(KcseResultsTable.userID, userID),
+    with: {
+      student: true, // <-- include full student details
+    },
   });
 };

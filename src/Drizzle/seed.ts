@@ -18,11 +18,47 @@ import {
 } from "./schema";
 
 async function seed() {
-  console.log("🌱 Seeding database...");
+  console.log("Seeding database...");
 
   /* =============================
-     USERS (10 users)
+     CLEAR EXISTING DATA
   ============================= */
+  console.log("Clearing existing data...");
+  
+  // Clear tables in reverse order (to respect foreign key constraints)
+  const tables = [
+    NotificationsTable,
+    PlacementsTable,
+    ApplicationWindowsTable,
+    ApplicationsTable,
+    ProgrammeClusterSubjectsTable,
+    ProgrammeClusterMapTable,
+    UniversityProgrammesTable,
+    ProgrammeClustersTable,
+    ProgrammeLevelsTable,
+    KcseResultsTable,
+    ProgrammesTable,
+    UniversitiesTable,
+    UsersTable,
+  ];
+for (const table of tables) {
+  try {
+    await db.delete(table);
+    console.log(`Cleared ${table._?.name || "Unknown Table"}`);
+  } catch (error: any) {
+    console.log(`Could not clear ${table._?.name || "Unknown Table"}:`, error.message);
+  }
+}
+
+
+
+
+  console.log("\n=== STARTING SEEDING ===\n");
+
+  /* =============================
+     USERS (15 users)
+  ============================= */
+  console.log("Seeding users...");
   const passwordHash = await bcrypt.hash("Password123", 10);
 
   await db.insert(UsersTable).values([
@@ -104,6 +140,58 @@ async function seed() {
       meanGrade: "C+",
       agp: 6,
     },
+    {
+      email: "student7@test.com",
+      passwordHash,
+      role: "student",
+      isVerified: true,
+      firstName: "Peter",
+      lastName: "Mwangi",
+      gender: "Male",
+      citizenship: "Kenyan",
+      kcseIndex: "78901234/2023",
+      meanGrade: "B+",
+      agp: 11,
+    },
+    {
+      email: "student8@test.com",
+      passwordHash,
+      role: "student",
+      isVerified: true,
+      firstName: "Esther",
+      lastName: "Chebet",
+      gender: "Female",
+      citizenship: "Kenyan",
+      kcseIndex: "89012345/2023",
+      meanGrade: "A-",
+      agp: 13,
+    },
+    {
+      email: "student9@test.com",
+      passwordHash,
+      role: "student",
+      isVerified: true,
+      firstName: "John",
+      lastName: "Kiptoo",
+      gender: "Male",
+      citizenship: "Kenyan",
+      kcseIndex: "90123456/2023",
+      meanGrade: "B",
+      agp: 9,
+    },
+    {
+      email: "student10@test.com",
+      passwordHash,
+      role: "student",
+      isVerified: true,
+      firstName: "Mercy",
+      lastName: "Nyambura",
+      gender: "Female",
+      citizenship: "Kenyan",
+      kcseIndex: "01234567/2023",
+      meanGrade: "C+",
+      agp: 7,
+    },
     // University Admins
     {
       email: "admin.uon@test.com",
@@ -123,6 +211,16 @@ async function seed() {
       firstName: "Dr. Mary",
       lastName: "Wanjiru",
       gender: "Female",
+      citizenship: "Kenyan",
+    },
+    {
+      email: "admin.mku@test.com",
+      passwordHash,
+      role: "university_admin",
+      isVerified: true,
+      firstName: "Prof. Simon",
+      lastName: "Gicharu",
+      gender: "Male",
       citizenship: "Kenyan",
     },
     // System Admins
@@ -148,9 +246,12 @@ async function seed() {
     },
   ]);
 
+  console.log("Created 15 users");
+
   /* =============================
      KCSE RESULTS
   ============================= */
+  console.log("Seeding KCSE results...");
   await db.insert(KcseResultsTable).values([
     // Ian Kamunya (B+)
     { userID: 1, subjectCode: "101", subjectName: "English", grade: "B+", points: 10 },
@@ -189,9 +290,12 @@ async function seed() {
     { userID: 6, subjectCode: "502", subjectName: "Business Studies", grade: "C+", points: 7 },
   ]);
 
+  console.log("Created KCSE results");
+
   /* =============================
-     UNIVERSITIES (20 universities)
+     UNIVERSITIES (30 universities)
   ============================= */
+  console.log("Seeding universities...");
   await db.insert(UniversitiesTable).values([
     // Public Universities
     { name: "University of Nairobi", type: "Public", county: "Nairobi", governmentScholarship: true, helbEligible: true },
@@ -204,6 +308,11 @@ async function seed() {
     { name: "Kisii University", type: "Public", county: "Kisii", governmentScholarship: true, helbEligible: true },
     { name: "Masinde Muliro University of Science & Technology", type: "Public", county: "Kakamega", governmentScholarship: true, helbEligible: true },
     { name: "Dedan Kimathi University of Technology", type: "Public", county: "Nyeri", governmentScholarship: true, helbEligible: true },
+    { name: "Multimedia University of Kenya", type: "Public", county: "Nairobi", governmentScholarship: true, helbEligible: true },
+    { name: "Meru University of Science and Technology", type: "Public", county: "Meru", governmentScholarship: true, helbEligible: true },
+    { name: "Murang'a University of Technology", type: "Public", county: "Murang'a", governmentScholarship: true, helbEligible: true },
+    { name: "Laikipia University", type: "Public", county: "Laikipia", governmentScholarship: true, helbEligible: true },
+    { name: "Karatina University", type: "Public", county: "Nyeri", governmentScholarship: true, helbEligible: true },
     
     // Private Universities
     { name: "Mount Kenya University", type: "Private", county: "Thika", governmentScholarship: false, helbEligible: true },
@@ -216,11 +325,19 @@ async function seed() {
     { name: "Zetech University", type: "Private", county: "Kiambu", governmentScholarship: false, helbEligible: true },
     { name: "Riara University", type: "Private", county: "Nairobi", governmentScholarship: false, helbEligible: true },
     { name: "Adventist University of Africa", type: "Private", county: "Nairobi", governmentScholarship: false, helbEligible: true },
+    { name: "Catholic University of Eastern Africa", type: "Private", county: "Nairobi", governmentScholarship: false, helbEligible: true },
+    { name: "St. Paul's University", type: "Private", county: "Kiambu", governmentScholarship: false, helbEligible: true },
+    { name: "Pan Africa Christian University", type: "Private", county: "Nairobi", governmentScholarship: false, helbEligible: true },
+    { name: "Gretsa University", type: "Private", county: "Kiambu", governmentScholarship: false, helbEligible: true },
+    { name: "Kiriri Women's University of Science and Technology", type: "Private", county: "Nairobi", governmentScholarship: false, helbEligible: true },
   ]);
 
+  console.log("Created 30 universities");
+
   /* =============================
-     PROGRAMMES (40 programmes)
+     PROGRAMMES (50 programmes)
   ============================= */
+  console.log("Seeding programmes...");
   const programmesData = [
     // Engineering & Technology
     { name: "Bachelor of Science in Computer Science", level: "Degree" },
@@ -229,6 +346,8 @@ async function seed() {
     { name: "Bachelor of Science in Electrical & Electronics Engineering", level: "Degree" },
     { name: "Bachelor of Science in Civil Engineering", level: "Degree" },
     { name: "Bachelor of Science in Mechanical Engineering", level: "Degree" },
+    { name: "Bachelor of Science in Telecommunications Engineering", level: "Degree" },
+    { name: "Bachelor of Science in Aeronautical Engineering", level: "Degree" },
     { name: "Diploma in Computer Science", level: "Diploma" },
     { name: "Diploma in Electrical Engineering", level: "Diploma" },
     
@@ -237,6 +356,8 @@ async function seed() {
     { name: "Bachelor of Science in Nursing", level: "Degree" },
     { name: "Bachelor of Pharmacy", level: "Degree" },
     { name: "Bachelor of Science in Public Health", level: "Degree" },
+    { name: "Bachelor of Science in Medical Laboratory Science", level: "Degree" },
+    { name: "Bachelor of Science in Physiotherapy", level: "Degree" },
     { name: "Diploma in Clinical Medicine", level: "Diploma" },
     { name: "Diploma in Nursing", level: "Diploma" },
     
@@ -245,6 +366,8 @@ async function seed() {
     { name: "Bachelor of Business Administration", level: "Degree" },
     { name: "Bachelor of Science in Economics", level: "Degree" },
     { name: "Bachelor of Science in Finance", level: "Degree" },
+    { name: "Bachelor of Science in Accounting", level: "Degree" },
+    { name: "Bachelor of Science in Marketing", level: "Degree" },
     { name: "Diploma in Business Management", level: "Diploma" },
     { name: "Diploma in Accounting", level: "Diploma" },
     
@@ -260,7 +383,9 @@ async function seed() {
     { name: "Bachelor of Education (Arts)", level: "Degree" },
     { name: "Bachelor of Education (Science)", level: "Degree" },
     { name: "Bachelor of Education (Early Childhood)", level: "Degree" },
+    { name: "Bachelor of Education (Special Needs)", level: "Degree" },
     { name: "Diploma in Education", level: "Diploma" },
+    { name: "Diploma in Early Childhood Education", level: "Diploma" },
     
     // Natural Sciences
     { name: "Bachelor of Science in Mathematics", level: "Degree" },
@@ -277,6 +402,7 @@ async function seed() {
     // Agriculture & Environment
     { name: "Bachelor of Science in Agriculture", level: "Degree" },
     { name: "Bachelor of Science in Environmental Science", level: "Degree" },
+    { name: "Bachelor of Science in Food Science", level: "Degree" },
     { name: "Diploma in Agriculture", level: "Diploma" },
     
     // Certificate Programmes
@@ -285,21 +411,24 @@ async function seed() {
   ];
 
   await db.insert(ProgrammesTable).values(programmesData);
+  console.log("Created 50 programmes");
 
   /* =============================
      PROGRAMME LEVELS
   ============================= */
+  console.log("Seeding programme levels...");
   await db.insert(ProgrammeLevelsTable).values([
     { name: "Degree", description: "Bachelor Degree Programmes" },
-    { name: "Diploma", description: "Diploma / Level 6 Programmes" },
-    { name: "Certificate", description: "Certificate / Level 5 Programmes" },
-    { name: "Artisan", description: "Artisan / Level 4 Programmes" },
-    { name: "Masters", description: "Masters / Postgraduate Programmes" },
+    { name: "Diploma", description: "Diploma Programmes" },
+    { name: "Certificate", description: "Certificate Programmes" },
+    { name: "Artisan", description: "Artisan Programmes" },
+    { name: "Masters", description: "Masters Programmes" },
   ]);
 
   /* =============================
      PROGRAMME CLUSTERS
   ============================= */
+  console.log("Seeding programme clusters...");
   await db.insert(ProgrammeClustersTable).values([
     { clusterCode: "CL1", name: "Law" },
     { clusterCode: "CL2", name: "Business, Hospitality & Related" },
@@ -316,72 +445,32 @@ async function seed() {
   /* =============================
      PROGRAMME ↔ CLUSTER MAP
   ============================= */
-  await db.insert(ProgrammeClusterMapTable).values([
-    // Law (CL1)
-    { programmeID: 21, clusterID: 1 },
+  console.log("Seeding programme-cluster map...");
+  const programmeClusterMapData = [];
+  for (let programmeID = 1; programmeID <= 50; programmeID++) {
+    let clusterID = 3; // Default to Computing & IT
     
-    // Business (CL2)
-    { programmeID: 15, clusterID: 2 },
-    { programmeID: 16, clusterID: 2 },
-    { programmeID: 17, clusterID: 2 },
-    { programmeID: 18, clusterID: 2 },
-    { programmeID: 19, clusterID: 2 },
-    { programmeID: 20, clusterID: 2 },
-    { programmeID: 42, clusterID: 2 },
+    if (programmeID <= 10) clusterID = 6; // Engineering
+    else if (programmeID <= 18) clusterID = 5; // Health
+    else if (programmeID <= 26) clusterID = 2; // Business
+    else if (programmeID === 27) clusterID = 1; // Law
+    else if (programmeID <= 32) clusterID = 10; // Social Sciences
+    else if (programmeID <= 38) clusterID = 4; // Education
+    else if (programmeID <= 42) clusterID = 7; // Natural Sciences
+    else if (programmeID <= 46) clusterID = 8; // Arts
+    else if (programmeID <= 48) clusterID = 9; // Agriculture
+    else clusterID = 3; // Certificates
     
-    // Computing & IT (CL3)
-    { programmeID: 1, clusterID: 3 },
-    { programmeID: 2, clusterID: 3 },
-    { programmeID: 3, clusterID: 3 },
-    { programmeID: 7, clusterID: 3 },
-    { programmeID: 41, clusterID: 3 },
-    
-    // Education (CL4)
-    { programmeID: 27, clusterID: 4 },
-    { programmeID: 28, clusterID: 4 },
-    { programmeID: 29, clusterID: 4 },
-    { programmeID: 30, clusterID: 4 },
-    
-    // Health (CL5)
-    { programmeID: 9, clusterID: 5 },
-    { programmeID: 10, clusterID: 5 },
-    { programmeID: 11, clusterID: 5 },
-    { programmeID: 12, clusterID: 5 },
-    { programmeID: 13, clusterID: 5 },
-    { programmeID: 14, clusterID: 5 },
-    
-    // Engineering (CL6)
-    { programmeID: 4, clusterID: 6 },
-    { programmeID: 5, clusterID: 6 },
-    { programmeID: 6, clusterID: 6 },
-    { programmeID: 8, clusterID: 6 },
-    
-    // Natural Sciences (CL7)
-    { programmeID: 31, clusterID: 7 },
-    { programmeID: 32, clusterID: 7 },
-    { programmeID: 33, clusterID: 7 },
-    { programmeID: 34, clusterID: 7 },
-    
-    // Arts & Humanities (CL8)
-    { programmeID: 22, clusterID: 8 },
-    { programmeID: 23, clusterID: 8 },
-    { programmeID: 35, clusterID: 8 },
-    { programmeID: 36, clusterID: 8 },
-    { programmeID: 37, clusterID: 8 },
-    { programmeID: 38, clusterID: 8 },
-    
-    // Agriculture & Environment (CL9)
-    { programmeID: 39, clusterID: 9 },
-    { programmeID: 40, clusterID: 9 },
-    
-    // Social Sciences (CL10)
-    { programmeID: 24, clusterID: 10 },
-    { programmeID: 25, clusterID: 10 },
-  ]);
+    programmeClusterMapData.push({ programmeID, clusterID });
+  }
+
+  await db.insert(ProgrammeClusterMapTable).values(programmeClusterMapData);
+  console.log("Mapped programmes to clusters");
 
   /* =============================
      PROGRAMME CLUSTER SUBJECT REQUIREMENTS
   ============================= */
+  console.log("Seeding cluster subject requirements...");
   await db.insert(ProgrammeClusterSubjectsTable).values([
     // CL3: Computing & IT
     { clusterID: 3, subjectCode: "121", subjectName: "Mathematics", minPoints: 9, alternativeGroup: null },
@@ -411,92 +500,265 @@ async function seed() {
     { clusterID: 1, subjectCode: "101", subjectName: "English", minPoints: 11, alternativeGroup: null },
     { clusterID: 1, subjectCode: "102", subjectName: "Kiswahili", minPoints: 9, alternativeGroup: null },
     { clusterID: 1, subjectCode: "311", subjectName: "History", minPoints: 9, alternativeGroup: null },
+    
+    // CL7: Natural Sciences
+    { clusterID: 7, subjectCode: "121", subjectName: "Mathematics", minPoints: 10, alternativeGroup: null },
+    { clusterID: 7, subjectCode: "233", subjectName: "Chemistry", minPoints: 10, alternativeGroup: null },
+    { clusterID: 7, subjectCode: "231", subjectName: "Biology", minPoints: 10, alternativeGroup: null },
+    
+    // CL8: Arts & Humanities
+    { clusterID: 8, subjectCode: "101", subjectName: "English", minPoints: 10, alternativeGroup: null },
+    { clusterID: 8, subjectCode: "102", subjectName: "Kiswahili", minPoints: 9, alternativeGroup: null },
+    { clusterID: 8, subjectCode: "311", subjectName: "History", minPoints: 8, alternativeGroup: null },
+    
+    // CL9: Agriculture & Environment
+    { clusterID: 9, subjectCode: "443", subjectName: "Agriculture", minPoints: 9, alternativeGroup: null },
+    { clusterID: 9, subjectCode: "121", subjectName: "Mathematics", minPoints: 9, alternativeGroup: null },
+    { clusterID: 9, subjectCode: "101", subjectName: "English", minPoints: 9, alternativeGroup: null },
+    
+    // CL10: Social Sciences
+    { clusterID: 10, subjectCode: "101", subjectName: "English", minPoints: 10, alternativeGroup: null },
+    { clusterID: 10, subjectCode: "102", subjectName: "Kiswahili", minPoints: 9, alternativeGroup: null },
+    { clusterID: 10, subjectCode: "311", subjectName: "History", minPoints: 8, alternativeGroup: null },
   ]);
 
   /* =============================
      UNIVERSITY-PROGRAMMES
+     Each program offered by 15+ universities
   ============================= */
-  // Create some university-programme relationships
+  console.log("Seeding university programmes...");
   const universityProgrammesData = [];
-  for (let programmeID = 1; programmeID <= 42; programmeID++) {
-    // Each programme in 2-3 universities
-    const numUniversities = Math.floor(Math.random() * 2) + 2;
-    const selectedUnis = new Set<number>();
+  
+  for (let programmeID = 1; programmeID <= 50; programmeID++) {
+    // Each programme in 15-17 universities
+    const numUniversities = 15 + Math.floor(Math.random() * 3); // 15-17 universities
     
+    // Create a set of unique university IDs
+    const selectedUnis = new Set<number>();
     while (selectedUnis.size < numUniversities) {
-      selectedUnis.add(Math.floor(Math.random() * 20) + 1);
+      // Select from all 30 universities
+      selectedUnis.add(Math.floor(Math.random() * 30) + 1);
     }
     
     for (const universityID of selectedUnis) {
+      // Determine duration based on programme level
+      let durationYears = "3.0";
+      if (programmeID <= 26) durationYears = "4.0"; // Degrees
+      if (programmeID === 11) durationYears = "6.0"; // Medicine
+      if (programmeID === 12) durationYears = "4.0"; // Nursing
+      
+      // Determine min AGP based on programme competitiveness
+      let minAGP = 8;
+      if (programmeID === 11) minAGP = 13; // Medicine
+      else if (programmeID === 27) minAGP = 12; // Law
+      else if (programmeID <= 10) minAGP = 10; // Engineering
+      else if (programmeID <= 18) minAGP = 11; // Health sciences
+      else if (programmeID <= 26) minAGP = 9; // Business
+      
+      // Determine capacity based on programme type
+      let capacity = 80; // Default capacity
+      if (programmeID === 11) capacity = 50; // Medicine (smaller capacity)
+      else if (programmeID === 27) capacity = 60; // Law
+      else if (programmeID <= 10) capacity = 120; // Engineering (larger)
+      else if (programmeID <= 18) capacity = 90; // Health sciences
+      else if (programmeID <= 26) capacity = 150; // Business (largest)
+      else if (programmeID >= 49) capacity = 60; // Certificates
+      
+      // Randomly adjust capacity slightly
+      capacity = Math.max(30, capacity + Math.floor(Math.random() * 40) - 20);
+      
+      // Random filled slots (0-30% of capacity)
+      const filledSlots = Math.floor(Math.random() * (capacity * 0.3));
+
       universityProgrammesData.push({
         universityID,
         programmeID,
-        durationYears: (Math.floor(Math.random() * 3) + 3).toString() + ".0",
-        minAGP: Math.floor(Math.random() * 10) + 6,
-        helbEligible: true,
+        durationYears,
+        minAGP: Math.max(6, Math.min(15, minAGP)),
+        helbEligible: universityID <= 15 ? true : Math.random() > 0.3,
         scholarshipAvailable: Math.random() > 0.7,
+        capacity,
+        filledSlots,
       });
     }
   }
 
-  // Insert in batches to avoid hitting query size limits
-  const batchSize = 50;
+  // Insert in batches
+  const batchSize = 100;
   for (let i = 0; i < universityProgrammesData.length; i += batchSize) {
     const batch = universityProgrammesData.slice(i, i + batchSize);
     await db.insert(UniversityProgrammesTable).values(batch);
   }
 
-  /* =============================
-     APPLICATIONS
-  ============================= */
-  await db.insert(ApplicationsTable).values([
-    { userID: 1, programmeID: 1, choiceOrder: 1, applicationDate: "2025-01-15", status: "Pending", clusterScore: "42.5" },
-    { userID: 2, programmeID: 15, choiceOrder: 1, applicationDate: "2025-01-18", status: "Pending", clusterScore: "38.0" },
-    { userID: 3, programmeID: 4, choiceOrder: 1, applicationDate: "2025-01-20", status: "Approved", clusterScore: "48.3" },
-    { userID: 4, programmeID: 9, choiceOrder: 1, applicationDate: "2025-01-22", status: "Approved", clusterScore: "52.5" },
-    { userID: 5, programmeID: 41, choiceOrder: 1, applicationDate: "2025-01-25", status: "Pending", clusterScore: "34.5" },
-    { userID: 1, programmeID: 2, choiceOrder: 2, applicationDate: "2025-01-15", status: "Pending", clusterScore: "41.2" },
-    { userID: 2, programmeID: 16, choiceOrder: 2, applicationDate: "2025-01-18", status: "Pending", clusterScore: "37.5" },
-  ]);
+  console.log(`Created ${universityProgrammesData.length} university-programme relationships`);
 
   /* =============================
-     PLACEMENTS
+     APPLICATIONS (using updated enum values)
   ============================= */
-  await db.insert(PlacementsTable).values([
-    { userID: 1, programmeID: 1, placementStatus: "Provisional", placementDate: "2025-03-01" },
-    { userID: 3, programmeID: 4, placementStatus: "Placed", placementDate: "2025-03-05" },
-    { userID: 4, programmeID: 9, placementStatus: "Placed", placementDate: "2025-03-10" },
-    { userID: 5, programmeID: 41, placementStatus: "Placed", placementDate: "2025-03-12" },
-    { userID: 2, programmeID: 15, placementStatus: "Not Placed", placementDate: null },
+  console.log("Seeding applications...");
+  await db.insert(ApplicationsTable).values([
+    { userID: 1, programmeID: 1, clusterID: 3, choiceOrder: 1, applicationDate: "2025-01-15", status: "pending", clusterScore: "42.5" },
+    { userID: 2, programmeID: 19, clusterID: 2, choiceOrder: 1, applicationDate: "2025-01-18", status: "placed", clusterScore: "38.0" },
+    { userID: 3, programmeID: 4, clusterID: 6, choiceOrder: 1, applicationDate: "2025-01-20", status: "placed", clusterScore: "48.3" },
+    { userID: 4, programmeID: 11, clusterID: 5, choiceOrder: 1, applicationDate: "2025-01-22", status: "placed", clusterScore: "52.5" },
+    { userID: 5, programmeID: 49, clusterID: 3, choiceOrder: 1, applicationDate: "2025-01-25", status: "placed", clusterScore: "34.5" },
+    { userID: 1, programmeID: 2, clusterID: 3, choiceOrder: 2, applicationDate: "2025-01-15", status: "pending", clusterScore: "41.2" },
+    { userID: 2, programmeID: 20, clusterID: 2, choiceOrder: 2, applicationDate: "2025-01-18", status: "pending", clusterScore: "37.5" },
+    { userID: 3, programmeID: 11, clusterID: 5, choiceOrder: 2, applicationDate: "2025-01-20", status: "not_placed", clusterScore: "49.5" },
+    { userID: 6, programmeID: 33, clusterID: 4, choiceOrder: 1, applicationDate: "2025-01-28", status: "pending", clusterScore: "32.8" },
+    { userID: 7, programmeID: 15, clusterID: 2, choiceOrder: 1, applicationDate: "2025-02-01", status: "placed", clusterScore: "40.2" },
+    { userID: 8, programmeID: 12, clusterID: 5, choiceOrder: 1, applicationDate: "2025-02-05", status: "placed", clusterScore: "45.6" },
+    { userID: 9, programmeID: 47, clusterID: 9, choiceOrder: 1, applicationDate: "2025-02-10", status: "placed", clusterScore: "36.7" },
+    { userID: 10, programmeID: 28, clusterID: 10, choiceOrder: 1, applicationDate: "2025-02-15", status: "pending", clusterScore: "33.4" },
+    { userID: 4, programmeID: 27, clusterID: 1, choiceOrder: 2, applicationDate: "2025-01-22", status: "withdrawn", clusterScore: "51.8" },
   ]);
+
+  console.log("Created 14 applications");
+
+  /* =============================
+     PLACEMENTS (FIXED: Correct schema with universityID, applicationID, year)
+  ============================= */
+  console.log("Seeding placements...");
+  
+  // First, let's get the application IDs we just created
+  const applications = await db.select().from(ApplicationsTable);
+  const applicationMap = new Map();
+  applications.forEach(app => {
+    const key = `${app.userID}-${app.programmeID}`;
+    applicationMap.set(key, app.applicationID);
+  });
+
+  // Now create placements with correct schema
+  await db.insert(PlacementsTable).values([
+    { 
+      userID: 1, 
+      programmeID: 1, 
+      universityID: 1, // University of Nairobi
+      applicationID: applicationMap.get("1-1") || 1,
+      year: 2025 
+    },
+    { 
+      userID: 3, 
+      programmeID: 4, 
+      universityID: 6, // Jomo Kenyatta University
+      applicationID: applicationMap.get("3-4") || 3,
+      year: 2025 
+    },
+    { 
+      userID: 4, 
+      programmeID: 11, 
+      universityID: 1, // University of Nairobi
+      applicationID: applicationMap.get("4-11") || 4,
+      year: 2025 
+    },
+    { 
+      userID: 5, 
+      programmeID: 49, 
+      universityID: 16, // Mount Kenya University
+      applicationID: applicationMap.get("5-49") || 5,
+      year: 2025 
+    },
+    { 
+      userID: 7, 
+      programmeID: 15, 
+      universityID: 2, // Kenyatta University
+      applicationID: applicationMap.get("7-15") || 10,
+      year: 2025 
+    },
+    { 
+      userID: 8, 
+      programmeID: 12, 
+      universityID: 1, // University of Nairobi
+      applicationID: applicationMap.get("8-12") || 11,
+      year: 2025 
+    },
+    { 
+      userID: 9, 
+      programmeID: 47, 
+      universityID: 9, // Masinde Muliro University
+      applicationID: applicationMap.get("9-47") || 12,
+      year: 2025 
+    },
+  ]);
+
+  console.log("Created 7 placements");
 
   /* =============================
      APPLICATION WINDOWS
   ============================= */
+  console.log("Seeding application windows...");
   await db.insert(ApplicationWindowsTable).values([
-    { name: "2025 Main Intake", startDate: "2025-01-01", endDate: "2025-03-31", isActive: true },
-    { name: "2025 September Intake", startDate: "2025-06-01", endDate: "2025-08-31", isActive: false },
-    { name: "2024 Main Intake", startDate: "2024-01-01", endDate: "2024-03-31", isActive: false },
+    { name: "2025 Main Intake", startDate: "2025-01-01", endDate: "2025-03-31", isActive: true, programmeID: 1, totalSlots: 100, availableSlots: 45 },
+    { name: "2025 September Intake", startDate: "2025-06-01", endDate: "2025-08-31", isActive: false, programmeID: 19, totalSlots: 80, availableSlots: 80 },
+    { name: "2024 Main Intake", startDate: "2024-01-01", endDate: "2024-03-31", isActive: false, programmeID: 4, totalSlots: 120, availableSlots: 0 },
+    { name: "2025 Engineering Intake", startDate: "2025-02-01", endDate: "2025-04-30", isActive: true, programmeID: 4, totalSlots: 150, availableSlots: 75 },
+    { name: "2025 Business Intake", startDate: "2025-01-15", endDate: "2025-03-15", isActive: true, programmeID: 19, totalSlots: 200, availableSlots: 120 },
+    { name: "2025 Medicine Intake", startDate: "2025-02-15", endDate: "2025-04-15", isActive: true, programmeID: 11, totalSlots: 80, availableSlots: 25 },
+    { name: "2025 Law Intake", startDate: "2025-01-20", endDate: "2025-03-20", isActive: true, programmeID: 27, totalSlots: 60, availableSlots: 15 },
+    { name: "2025 Education Intake", startDate: "2025-02-10", endDate: "2025-04-10", isActive: true, programmeID: 33, totalSlots: 180, availableSlots: 95 },
+    { name: "2025 Nursing Intake", startDate: "2025-01-25", endDate: "2025-03-25", isActive: true, programmeID: 12, totalSlots: 100, availableSlots: 40 },
+    { name: "2025 Agriculture Intake", startDate: "2025-02-05", endDate: "2025-04-05", isActive: true, programmeID: 47, totalSlots: 120, availableSlots: 85 },
   ]);
+
+  console.log("Created 10 application windows");
 
   /* =============================
      NOTIFICATIONS
   ============================= */
+  console.log("Seeding notifications...");
   await db.insert(NotificationsTable).values([
-    { userID: 1, userRole: "student", message: "Your application for BSc Computer Science is under review", isRead: false, createdAt: "2025-02-15" },
-    { userID: 1, userRole: "student", message: "Provisional placement offered", isRead: true, createdAt: "2025-03-01" },
-    { userID: 3, userRole: "student", message: "Congratulations! You have been placed for Electrical Engineering", isRead: true, createdAt: "2025-03-05" },
-    { userID: 4, userRole: "student", message: "Medical school application approved", isRead: false, createdAt: "2025-02-28" },
-    { userID: 7, userRole: "university_admin", message: "New applications received for review", isRead: false, createdAt: "2025-02-20" },
-    { userID: 9, userRole: "system_admin", message: "System maintenance scheduled", isRead: true, createdAt: "2025-02-10" },
+    { userID: 1, userRole: "student", message: "Your application for BSc Computer Science is under review", isRead: false, createdAt: "2025-01-16" },
+    { userID: 3, userRole: "student", message: "Congratulations! Your placement for Engineering is confirmed", isRead: true, createdAt: "2025-03-06" },
+    { userID: 4, userRole: "student", message: "Medical school application accepted. Please complete registration", isRead: true, createdAt: "2025-01-25" },
+    { userID: 8, userRole: "student", message: "Your Nursing application has been processed successfully", isRead: false, createdAt: "2025-02-08" },
+    { userID: 11, userRole: "university_admin", message: "New applications pending review for University of Nairobi", isRead: false, createdAt: "2025-02-20" },
+    { userID: 13, userRole: "system_admin", message: "System maintenance scheduled for Saturday 2 AM", isRead: true, createdAt: "2025-02-15" },
+    { userID: 2, userRole: "student", message: "Your Business application requires additional documents", isRead: false, createdAt: "2025-01-20" },
+    { userID: 5, userRole: "student", message: "Certificate programme placement confirmed", isRead: true, createdAt: "2025-03-13" },
+    { userID: 7, userRole: "student", message: "Scholarship opportunity available for your programme", isRead: false, createdAt: "2025-02-25" },
+    { userID: 10, userRole: "student", message: "Application deadline approaching for Social Sciences", isRead: true, createdAt: "2025-02-28" },
   ]);
 
-  console.log("✅ Database seeded successfully!");
+  console.log("Created 10 notifications");
+
+  /* =============================
+     FINAL SUMMARY
+  ============================= */
+  console.log("\n" + "=".repeat(50));
+  console.log("✅ DATABASE SEEDED SUCCESSFULLY!");
+  console.log("=".repeat(50));
+  console.log("\n📊 SEED SUMMARY:");
+  console.log("├── Users: 15 (10 students, 5 admins)");
+  console.log("├── Universities: 30 (15 public, 15 private)");
+  console.log("├── Programmes: 50");
+  console.log("├── University-Programmes: " + universityProgrammesData.length);
+  console.log("├── Applications: 14");
+  console.log("├── Placements: 7");
+  console.log("├── Application Windows: 10");
+  console.log("└── Notifications: 10");
+  
+  console.log("\n📈 KEY FEATURES:");
+  console.log("├── Each programme offered by 15-17 universities");
+  console.log("├── University programmes now include capacity tracking");
+  console.log("├── Applications use new status enum (pending, placed, not_placed, withdrawn, rejected)");
+  console.log("├── Placements now correctly reference universityID and applicationID");
+  console.log("└── All data relationships properly configured");
+  
+  console.log("\n🔑 LOGIN CREDENTIALS:");
+  console.log("├── Students: student1@test.com ... student10@test.com");
+  console.log("├── Password: Password123");
+  console.log("├── University Admins: admin.uon@test.com, admin.ku@test.com, admin.mku@test.com");
+  console.log("└── System Admins: sysadmin@test.com, support@test.com");
+  
+  console.log("\n🎉 Ready for presentation!");
+  console.log("=".repeat(50) + "\n");
+  
   process.exit(0);
 }
 
 seed().catch((err) => {
-  console.error("❌ Seeding failed:", err);
-  console.error("Error details:", err.message);
+  console.error("❌ Seeding failed:");
+  console.error("Error:", err.message);
+  console.error("Stack:", err.stack);
   process.exit(1);
 });

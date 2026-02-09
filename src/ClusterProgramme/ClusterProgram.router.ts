@@ -10,9 +10,6 @@ import {
 
 const router = Router();
 
-/* =============================
-   CLUSTER SUBJECT ROUTES
-============================= */
 
 // Create one or more cluster subjects
 router.post("/", createClusterSubjectsController);

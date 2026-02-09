@@ -34,9 +34,7 @@ export const createClusterSubjectsService = async ({
   return newSubjects;
 };
 
-/* =============================
-   GET ALL SUBJECTS FOR A CLUSTER
-============================= */
+
 export const getClusterSubjectsByClusterService = async (clusterID: number) => {
   return await db.query.ProgrammeClusterSubjectsTable.findMany({
     where: eq(ProgrammeClusterSubjectsTable.clusterID, clusterID),

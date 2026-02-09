@@ -1,63 +1,137 @@
-// src/applications/applications.service.ts
 import { eq } from "drizzle-orm";
 import db from "../Drizzle/db";
 import {
   ApplicationsTable,
   ProgrammeClusterMapTable,
-  ProgrammeClustersTable,
 } from "../Drizzle/schema";
 import type { TIApplication } from "../Drizzle/schema";
 
 /* =============================
-   CREATE A NEW STUDENT APPLICATION
-   - Automatically assigns clusterID based on programmeID
+   STATUS TYPE (FROM SCHEMA)
 ============================= */
-export const createApplicationService = async (application: TIApplication) => {
-  // Fetch clusterID from ProgrammeClusterMapTable
-  const clusterMap = await db.query.ProgrammeClusterMapTable.findFirst({
-    where: eq(ProgrammeClusterMapTable.programmeID, application.programmeID),
-  });
+type DbApplicationStatus = TIApplication["status"];
+
+/* =============================
+   NORMALIZE STATUS SAFELY
+   (ONLY VALUES ALLOWED BY DB)
+============================= */
+const normalizeStatus = (
+  status?: string | null
+): DbApplicationStatus => {
+  const value = status?.toLowerCase();
+
+  switch (value) {
+    case "pending":
+    case "placed":
+    case "not_placed":
+    case "withdrawn":
+    case "rejected":
+      return value;
+    default:
+      return "pending";
+  }
+};
+
+/* =============================
+   CREATE A NEW STUDENT APPLICATION
+============================= */
+export const createApplicationService = async (
+  application: TIApplication
+) => {
+  const clusterMap =
+    await db.query.ProgrammeClusterMapTable.findFirst({
+      where: eq(
+        ProgrammeClusterMapTable.programmeID,
+        application.programmeID
+      ),
+    });
 
   if (!clusterMap) {
-    throw new Error("No cluster found for the selected programme.");
+    throw new Error(
+      "No cluster found for the selected programme."
+    );
   }
 
-  application.clusterID = clusterMap.clusterID;
+  const safeApplication: TIApplication = {
+    ...application,
+    clusterID: clusterMap.clusterID,
+    status: normalizeStatus(application.status),
+  };
 
   const [newApplication] = await db
     .insert(ApplicationsTable)
-    .values(application)
+    .values(safeApplication)
     .returning();
 
   return newApplication;
 };
 
 /* =============================
-   GET ALL STUDENT APPLICATIONS
-   - Includes student, programme, and cluster info
+   HELPER: MAP FIRST UNIVERSITY
+============================= */
+const mapFirstUniversity = (application: any) => {
+  const firstUniversity =
+    application.programme?.universityProgrammes?.[0]
+      ?.university ?? null;
+
+  return {
+    ...application,
+    programme: {
+      ...application.programme,
+      university: firstUniversity,
+    },
+  };
+};
+
+/* =============================
+   GET ALL APPLICATIONS
 ============================= */
 export const getAllApplicationsService = async () => {
-  return await db.query.ApplicationsTable.findMany({
-    with: {
-      student: true,
-      programme: true,
-      cluster: true,
-    },
-  });
+  const applications =
+    await db.query.ApplicationsTable.findMany({
+      with: {
+        student: true,
+        cluster: true,
+        programme: {
+          with: {
+            universityProgrammes: {
+              with: { university: true },
+            },
+          },
+        },
+      },
+    });
+
+  return applications.map(mapFirstUniversity);
 };
 
 /* =============================
    GET APPLICATION BY ID
 ============================= */
-export const getApplicationByIdService = async (id: number) => {
-  return await db.query.ApplicationsTable.findFirst({
-    where: eq(ApplicationsTable.applicationID, id),
-    with: {
-      student: true,
-      programme: true,
-      cluster: true,
-    },
-  });
+export const getApplicationByIdService = async (
+  id: number
+) => {
+  const application =
+    await db.query.ApplicationsTable.findFirst({
+      where: eq(
+        ApplicationsTable.applicationID,
+        id
+      ),
+      with: {
+        student: true,
+        cluster: true,
+        programme: {
+          with: {
+            universityProgrammes: {
+              with: { university: true },
+            },
+          },
+        },
+      },
+    });
+
+  if (!application) return null;
+  return mapFirstUniversity(application);
 };
 
 /* =============================
@@ -67,20 +141,37 @@ export const updateApplicationService = async (
   id: number,
   data: Partial<TIApplication>
 ) => {
-  // Optional: if programmeID is updated, automatically update clusterID
   if (data.programmeID) {
-    const clusterMap = await db.query.ProgrammeClusterMapTable.findFirst({
-      where: eq(ProgrammeClusterMapTable.programmeID, data.programmeID),
-    });
+    const clusterMap =
+      await db.query.ProgrammeClusterMapTable.findFirst({
+        where: eq(
+          ProgrammeClusterMapTable.programmeID,
+          data.programmeID
+        ),
+      });
+
     if (!clusterMap) {
-      throw new Error("No cluster found for the selected programme.");
+      throw new Error(
+        "No cluster found for the selected programme."
+      );
     }
+
     data.clusterID = clusterMap.clusterID;
   }
 
-  await db.update(ApplicationsTable)
+  if (data.status) {
+    data.status = normalizeStatus(data.status);
+  }
+
+  await db
+    .update(ApplicationsTable)
     .set(data)
-    .where(eq(ApplicationsTable.applicationID, id));
+    .where(
+      eq(
+        ApplicationsTable.applicationID,
+        id
+      )
+    );
 
   return "Application updated successfully";
 };
@@ -88,22 +179,45 @@ export const updateApplicationService = async (
 /* =============================
    DELETE APPLICATION BY ID
 ============================= */
-export const deleteApplicationService = async (id: number) => {
-  await db.delete(ApplicationsTable)
-    .where(eq(ApplicationsTable.applicationID, id));
+export const deleteApplicationService = async (
+  id: number
+) => {
+  await db
+    .delete(ApplicationsTable)
+    .where(
+      eq(
+        ApplicationsTable.applicationID,
+        id
+      )
+    );
+
   return "Application deleted successfully";
 };
 
 /* =============================
-   GET ALL APPLICATIONS FOR A USER
+   GET USER APPLICATIONS
 ============================= */
-export const getUserApplicationsService = async (userID: number) => {
-  return await db.query.ApplicationsTable.findMany({
-    where: eq(ApplicationsTable.userID, userID),
-    with: {
-      student: true,
-      programme: true,
-      cluster: true,
-    },
-  });
+export const getUserApplicationsService = async (
+  userID: number
+) => {
+  const applications =
+    await db.query.ApplicationsTable.findMany({
+      where: eq(
+        ApplicationsTable.userID,
+        userID
+      ),
+      with: {
+        student: true,
+        cluster: true,
+        programme: {
+          with: {
+            universityProgrammes: {
+              with: { university: true },
+            },
+          },
+        },
+      },
+    });
+
+  return applications.map(mapFirstUniversity);
 };

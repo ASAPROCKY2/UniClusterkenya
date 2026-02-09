@@ -1,5 +1,4 @@
 // src/placements/placements.controller.ts
-
 import { Request, Response } from "express";
 import {
   createPlacementService,
@@ -8,6 +7,7 @@ import {
   updatePlacementService,
   deletePlacementService,
   getUserPlacementsService,
+  autoPlacementService,
 } from "./placements.service";
 
 /* =============================
@@ -15,18 +15,21 @@ import {
 ============================= */
 export const createPlacementController = async (req: Request, res: Response) => {
   try {
-    const { userID, programmeID, placementStatus, placementDate } = req.body;
+    const { userID, programmeID, universityID, applicationID, year, placementDate } = req.body;
 
-    if (!userID || !programmeID) {
+    // Validate required fields
+    if (!userID || !programmeID || !universityID || !applicationID || !year) {
       return res.status(400).json({
-        message: "User ID and programme ID are required.",
+        message: "userID, programmeID, universityID, applicationID, and year are required.",
       });
     }
 
     const newPlacement = await createPlacementService({
       userID,
       programmeID,
-      placementStatus,
+      universityID,
+      applicationID,
+      year,
       placementDate,
     });
 
@@ -41,12 +44,31 @@ export const createPlacementController = async (req: Request, res: Response) => 
 };
 
 /* =============================
+   AUTO PLACEMENT (NEW)
+============================= */
+export const autoPlacementController = async (_req: Request, res: Response) => {
+  try {
+    const year = Number(_req.query.year);
+    if (isNaN(year)) {
+      return res.status(400).json({ message: "Invalid year provided." });
+    }
+
+    const placements = await autoPlacementService(year);
+
+    return res.status(201).json({
+      message: "Auto placement completed successfully",
+      data: placements,
+    });
+  } catch (error: any) {
+    console.error("Error in autoPlacementController:", error);
+    return res.status(500).json({ error: error.message });
+  }
+};
+
+/* =============================
    GET ALL PLACEMENTS
 ============================= */
-export const getAllPlacementsController = async (
-  _req: Request,
-  res: Response
-) => {
+export const getAllPlacementsController = async (_req: Request, res: Response) => {
   try {
     const placements = await getAllPlacementsService();
     return res.status(200).json({ data: placements });
@@ -59,10 +81,7 @@ export const getAllPlacementsController = async (
 /* =============================
    GET PLACEMENT BY ID
 ============================= */
-export const getPlacementByIdController = async (
-  req: Request,
-  res: Response
-) => {
+export const getPlacementByIdController = async (req: Request, res: Response) => {
   try {
     const id = Number(req.params.id);
     if (isNaN(id)) {
@@ -84,10 +103,7 @@ export const getPlacementByIdController = async (
 /* =============================
    UPDATE PLACEMENT
 ============================= */
-export const updatePlacementController = async (
-  req: Request,
-  res: Response
-) => {
+export const updatePlacementController = async (req: Request, res: Response) => {
   try {
     const id = Number(req.params.id);
     if (isNaN(id)) {
@@ -95,7 +111,6 @@ export const updatePlacementController = async (
     }
 
     const result = await updatePlacementService(id, req.body);
-
     return res.status(200).json({ message: result });
   } catch (error: any) {
     console.error("Error in updatePlacementController:", error);
@@ -106,10 +121,7 @@ export const updatePlacementController = async (
 /* =============================
    DELETE PLACEMENT
 ============================= */
-export const deletePlacementController = async (
-  req: Request,
-  res: Response
-) => {
+export const deletePlacementController = async (req: Request, res: Response) => {
   try {
     const id = Number(req.params.id);
     if (isNaN(id)) {
@@ -127,10 +139,7 @@ export const deletePlacementController = async (
 /* =============================
    GET ALL PLACEMENTS FOR A USER
 ============================= */
-export const getUserPlacementsController = async (
-  req: Request,
-  res: Response
-) => {
+export const getUserPlacementsController = async (req: Request, res: Response) => {
   try {
     const userID = Number(req.params.userID);
     if (isNaN(userID)) {

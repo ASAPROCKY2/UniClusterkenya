@@ -5,7 +5,7 @@ import { UsersTable, TIUser } from "../Drizzle/schema";
 import { sendEmail } from "../mailer/mailer";
 
 //
-// 🧩 Create a new user (with verification code)
+//  Create a new user (with verification code)
 //
 export const createUserService = async (user: TIUser) => {
   // Hash password before storing
@@ -33,7 +33,7 @@ export const createUserService = async (user: TIUser) => {
 };
 
 //
-// 🧩 Get user by email
+//  Get user by email
 //
 export const getUserByEmailService = async (email: string) => {
   return await db.query.UsersTable.findFirst({
@@ -42,7 +42,7 @@ export const getUserByEmailService = async (email: string) => {
 };
 
 //
-// 🧩 Verify a user using verification code
+//  Verify a user using verification code
 //
 export const verifyUserService = async (email: string, code: string) => {
   const trimmedEmail = email.trim();
@@ -68,7 +68,7 @@ export const verifyUserService = async (email: string, code: string) => {
 };
 
 //
-// 🧩 Login a user (email + KCSE index + password)
+//  Login a user (email + KCSE index + password)
 //
 export const userLoginService = async (data: {
   email: string;
@@ -79,7 +79,7 @@ export const userLoginService = async (data: {
   const trimmedKCSE = data.kcseIndex.trim();
   const password = data.password;
 
-  // 1️⃣ Find user by email
+  // 1️ Find user by email
   const user = await db.query.UsersTable.findFirst({
     where: sql`${UsersTable.email} = ${trimmedEmail}`,
   });
@@ -87,17 +87,17 @@ export const userLoginService = async (data: {
   if (!user) throw new Error("User not found");
   if (!user.isVerified) throw new Error("User is not verified. Please verify your email first.");
 
-  // 2️⃣ Check KCSE index (only for students)
+  // 2️ Check KCSE index (only for students)
   if (user.role === "student") {
     if (!user.kcseIndex || user.kcseIndex !== trimmedKCSE)
       throw new Error("Invalid KCSE index");
   }
 
-  // 3️⃣ Validate password
+  // 3️Validate password
   const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
   if (!isPasswordValid) throw new Error("Incorrect password");
 
-  // 4️⃣ Return relevant info including gender & highSchool
+  // 4️ Return relevant info including gender & highSchool
   return {
     userID: user.userID,
     email: user.email,
@@ -107,22 +107,22 @@ export const userLoginService = async (data: {
     kcseIndex: user.kcseIndex,
     agp: user.agp,
     meanGrade: user.meanGrade,
-    photoURL: user.photoURL,        // ✅ consistent with front-end
-    gender: user.gender || null,    // ✅ added
-    highSchool: user.highSchool || null, // ✅ added
-    createdAt: user.createdAt,      // optional but useful
+    photoURL: user.photoURL,        
+    gender: user.gender || null,  
+    highSchool: user.highSchool || null,
+    createdAt: user.createdAt,      
   };
 };
 
 //
-// 🧩 Get all users
+//  Get all users
 //
 export const getUsersService = async () => {
   return await db.query.UsersTable.findMany();
 };
 
 //
-// 🧩 Get a user by ID
+//  Get a user by ID
 //
 export const getUserByIdService = async (id: number) => {
   return await db.query.UsersTable.findFirst({
@@ -131,7 +131,7 @@ export const getUserByIdService = async (id: number) => {
 };
 
 //
-// 🧩 Update a user by ID
+//  Update a user by ID
 //
 export const updateUserService = async (id: number, updates: Partial<TIUser>) => {
   // If password is being updated, hash it
@@ -145,7 +145,7 @@ export const updateUserService = async (id: number, updates: Partial<TIUser>) =>
 };
 
 //
-// 🧩 Delete a user by ID
+//  Delete a user by ID
 //
 export const deleteUserService = async (id: number) => {
   await db.delete(UsersTable).where(eq(UsersTable.userID, id));

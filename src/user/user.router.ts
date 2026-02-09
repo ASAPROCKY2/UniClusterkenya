@@ -10,11 +10,11 @@ import {
 } from "./user.controller";
 
 //
-// 🧭 User Routes for UniCluster
+//  User Routes for UniCluster
 //
 const UserRoutes = (app: Express) => {
   //
-  // 🔐 AUTH ROUTES
+  //  AUTH ROUTES
   //
   // Register a new user
   app.route("/auth/register").post(async (req, res, next) => {

@@ -16,8 +16,11 @@ import SystemAdminsRoutes from "./systemAdmins/systemAdmins.router";
 import NotificationsRoutes from "./notification/notification.router";
 import UserRoutes from "./user/user.router";
 
-// 🆕 Cluster Subjects routes
+// Cluster Subjects routes
 import ClusterProgrammeRoutes from "./ClusterProgramme/ClusterProgram.router";
+
+//  Dashboard routes
+import DashboardRoutes from "./Dashboard/dashboard.router";
 
 // =============================
 // APP SETUP
@@ -56,8 +59,11 @@ SystemAdminsRoutes(app);
 NotificationsRoutes(app);
 UserRoutes(app);
 
-// 🆕 Register ClusterSubjects routes
+//  Register ClusterSubjects routes
 app.use("/api/cluster-subjects", ClusterProgrammeRoutes);
+
+//  Register Dashboard routes
+DashboardRoutes(app);
 
 // =============================
 // SERVER
@@ -65,7 +71,7 @@ app.use("/api/cluster-subjects", ClusterProgrammeRoutes);
 const PORT = 8081;
 
 app.listen(PORT, () => {
-  console.log(`🚀 UniCluster backend running on http://localhost:${PORT}`);
+  console.log(` UniCluster backend running on http://localhost:${PORT}`);
 });
 
 export default app;

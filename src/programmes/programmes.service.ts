@@ -1,37 +1,50 @@
-// src/programmes/programmes.service.ts
 import { eq, and, type SQL } from "drizzle-orm";
 import db from "../Drizzle/db";
 import {
   ProgrammesTable,
+  UniversityProgrammesTable,
   ProgrammeLevelsTable,
   ProgrammeClustersTable,
   ProgrammeClusterMapTable,
+  ProgrammeClusterSubjectsTable,
   ApplicationsTable,
   PlacementsTable,
-  UniversitiesTable,
 } from "../Drizzle/schema";
 
 /* =============================
-   CREATE PROGRAMME
+   CREATE PROGRAMME (FIXED)
 ============================= */
 export const createProgrammeService = async ({
   programme,
+  universityID,
   clusterIDs,
 }: {
   programme: any;
+  universityID: number;
   clusterIDs?: number[];
 }) => {
+  /* 1️⃣ CREATE PROGRAMME */
   const [created] = await db
     .insert(ProgrammesTable)
-    .values({
-      ...programme,
-      durationYears: programme.durationYears?.toString(),
-    })
+    .values(programme)
     .returning();
 
+  /* 2️⃣ LINK PROGRAMME TO UNIVERSITY (🔥 BUG FIXED HERE) */
+  await db.insert(UniversityProgrammesTable).values({
+    programmeID: created.programmeID,
+    universityID,
+    capacity: programme.capacity ?? 0,     // ✅ REQUIRED
+    filledSlots: 0,                         // ✅ SAFE DEFAULT
+    durationYears: programme.durationYears ?? null,
+    minAGP: programme.minAGP ?? null,
+    helbEligible: programme.helbEligible ?? false,
+    scholarshipAvailable: programme.scholarshipAvailable ?? false,
+  });
+
+  /* 3️⃣ MAP PROGRAMME TO CLUSTERS */
   if (clusterIDs?.length) {
     await db.insert(ProgrammeClusterMapTable).values(
-      clusterIDs.map((clusterID) => ({
+      [...new Set(clusterIDs)].map((clusterID) => ({
         programmeID: created.programmeID,
         clusterID,
       }))
@@ -45,16 +58,24 @@ export const createProgrammeService = async ({
    GET ALL PROGRAMMES
 ============================= */
 export const getAllProgrammesService = async () => {
-  return db
+  const rows = await db
     .select({
       programmeID: ProgrammesTable.programmeID,
       programmeName: ProgrammesTable.name,
       programmeLevel: ProgrammesTable.level,
+      durationYears: UniversityProgrammesTable.durationYears,
+      minAGP: UniversityProgrammesTable.minAGP,
+      helbEligible: UniversityProgrammesTable.helbEligible,
+      scholarshipAvailable: UniversityProgrammesTable.scholarshipAvailable,
       clusterID: ProgrammeClustersTable.clusterID,
       clusterCode: ProgrammeClustersTable.clusterCode,
       clusterName: ProgrammeClustersTable.name,
     })
     .from(ProgrammesTable)
+    .leftJoin(
+      UniversityProgrammesTable,
+      eq(ProgrammesTable.programmeID, UniversityProgrammesTable.programmeID)
+    )
     .leftJoin(
       ProgrammeClusterMapTable,
       eq(ProgrammesTable.programmeID, ProgrammeClusterMapTable.programmeID)
@@ -63,6 +84,39 @@ export const getAllProgrammesService = async () => {
       ProgrammeClustersTable,
       eq(ProgrammeClusterMapTable.clusterID, ProgrammeClustersTable.clusterID)
     );
+
+  const programmesMap: Record<number, any> = {};
+
+  for (const r of rows) {
+    if (!programmesMap[r.programmeID]) {
+      programmesMap[r.programmeID] = {
+        programmeID: r.programmeID,
+        name: r.programmeName,
+        level: r.programmeLevel,
+        durationYears: r.durationYears ? Number(r.durationYears) : null,
+        minAGP: r.minAGP ?? null,
+        helbEligible: !!r.helbEligible,
+        scholarshipAvailable: !!r.scholarshipAvailable,
+        clusters: [],
+      };
+    }
+
+    if (r.clusterID) {
+      const exists = programmesMap[r.programmeID].clusters.some(
+        (c: any) => c.clusterID === r.clusterID
+      );
+
+      if (!exists) {
+        programmesMap[r.programmeID].clusters.push({
+          clusterID: r.clusterID,
+          clusterCode: r.clusterCode,
+          name: r.clusterName,
+        });
+      }
+    }
+  }
+
+  return Object.values(programmesMap);
 };
 
 /* =============================
@@ -74,11 +128,19 @@ export const getProgrammeByIdService = async (programmeID: number) => {
       programmeID: ProgrammesTable.programmeID,
       programmeName: ProgrammesTable.name,
       programmeLevel: ProgrammesTable.level,
+      durationYears: UniversityProgrammesTable.durationYears,
+      minAGP: UniversityProgrammesTable.minAGP,
+      helbEligible: UniversityProgrammesTable.helbEligible,
+      scholarshipAvailable: UniversityProgrammesTable.scholarshipAvailable,
       clusterID: ProgrammeClustersTable.clusterID,
       clusterCode: ProgrammeClustersTable.clusterCode,
       clusterName: ProgrammeClustersTable.name,
     })
     .from(ProgrammesTable)
+    .leftJoin(
+      UniversityProgrammesTable,
+      eq(ProgrammesTable.programmeID, UniversityProgrammesTable.programmeID)
+    )
     .leftJoin(
       ProgrammeClusterMapTable,
       eq(ProgrammesTable.programmeID, ProgrammeClusterMapTable.programmeID)
@@ -86,9 +148,55 @@ export const getProgrammeByIdService = async (programmeID: number) => {
     .leftJoin(
       ProgrammeClustersTable,
       eq(ProgrammeClusterMapTable.clusterID, ProgrammeClustersTable.clusterID)
-    );
+    )
+    .where(eq(ProgrammesTable.programmeID, programmeID));
 
-  return rows[0];
+  if (!rows.length) return null;
+
+  const clusterMap: Record<number, any> = {};
+
+  for (const r of rows) {
+    if (!r.clusterID) continue;
+
+    if (!clusterMap[r.clusterID]) {
+      const subjects = await db
+        .select({
+          id: ProgrammeClusterSubjectsTable.id,
+          subjectCode: ProgrammeClusterSubjectsTable.subjectCode,
+          subjectName: ProgrammeClusterSubjectsTable.subjectName,
+          minPoints: ProgrammeClusterSubjectsTable.minPoints,
+          alternativeGroup:
+            ProgrammeClusterSubjectsTable.alternativeGroup,
+        })
+        .from(ProgrammeClusterSubjectsTable)
+        .where(
+          eq(
+            ProgrammeClusterSubjectsTable.clusterID,
+            r.clusterID
+          )
+        );
+
+      clusterMap[r.clusterID] = {
+        clusterID: r.clusterID,
+        clusterCode: r.clusterCode,
+        name: r.clusterName,
+        subjects,
+      };
+    }
+  }
+
+  return {
+    programmeID: rows[0].programmeID,
+    name: rows[0].programmeName,
+    level: rows[0].programmeLevel,
+    durationYears: rows[0].durationYears
+      ? Number(rows[0].durationYears)
+      : null,
+    minAGP: rows[0].minAGP ?? null,
+    helbEligible: !!rows[0].helbEligible,
+    scholarshipAvailable: !!rows[0].scholarshipAvailable,
+    clusters: Object.values(clusterMap),
+  };
 };
 
 /* =============================
@@ -100,19 +208,14 @@ export const updateProgrammeService = async (
 ) =>
   db
     .update(ProgrammesTable)
-    .set({
-      ...updates,
-      durationYears: updates.durationYears?.toString(),
-    })
+    .set(updates)
     .where(eq(ProgrammesTable.programmeID, programmeID));
 
 /* =============================
    DELETE PROGRAMME
 ============================= */
 export const deleteProgrammeService = async (programmeID: number) =>
-  db
-    .delete(ProgrammesTable)
-    .where(eq(ProgrammesTable.programmeID, programmeID));
+  db.delete(ProgrammesTable).where(eq(ProgrammesTable.programmeID, programmeID));
 
 /* =============================
    PROGRAMME LEVELS
@@ -152,12 +255,11 @@ export const getProgrammesByClusterService = async (clusterID: number) =>
 /* =============================
    FILTER PROGRAMMES
 ============================= */
-export const filterProgrammesService = async (filters: {
-  level?: string;
-}) => {
+export const filterProgrammesService = async (filters: { level?: string }) => {
   const conditions: SQL[] = [];
-
-  if (filters.level) conditions.push(eq(ProgrammesTable.level, filters.level));
+  if (filters.level) {
+    conditions.push(eq(ProgrammesTable.level, filters.level));
+  }
 
   return db
     .select()
@@ -168,9 +270,7 @@ export const filterProgrammesService = async (filters: {
 /* =============================
    APPLICATIONS
 ============================= */
-export const getApplicationsForProgrammeService = async (
-  programmeID: number
-) =>
+export const getApplicationsForProgrammeService = async (programmeID: number) =>
   db
     .select()
     .from(ApplicationsTable)

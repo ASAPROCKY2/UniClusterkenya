@@ -1,3 +1,4 @@
+// src/kcseresults/kcseresults.controller.ts
 import { Request, Response } from "express";
 import {
   createKcseResultsService,
@@ -51,7 +52,7 @@ export const createKcseResultController = async (req: Request, res: Response) =>
 };
 
 /* =============================
-   GET ALL KCSE RESULTS
+   GET ALL KCSE RESULTS (WITH STUDENT INFO)
 ============================ */
 export const getAllKcseResultsController = async (_req: Request, res: Response) => {
   try {
@@ -64,7 +65,7 @@ export const getAllKcseResultsController = async (_req: Request, res: Response) 
 };
 
 /* =============================
-   GET KCSE RESULTS BY USER ID
+   GET KCSE RESULTS BY USER ID (WITH STUDENT INFO)
 ============================ */
 export const getKcseResultsByUserIdController = async (req: Request, res: Response) => {
   try {
@@ -124,7 +125,7 @@ export const deleteKcseResultsByUserIdController = async (req: Request, res: Res
 };
 
 /* =============================
-   GET ALL KCSE RESULTS FOR A STUDENT
+   GET ALL KCSE RESULTS FOR A STUDENT (WITH STUDENT INFO)
 ============================ */
 export const getStudentKcseResultsController = async (req: Request, res: Response) => {
   try {

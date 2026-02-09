@@ -1,10 +1,14 @@
+CREATE TYPE "public"."application_status" AS ENUM('pending', 'placed', 'not_placed', 'withdrawn', 'rejected');--> statement-breakpoint
 CREATE TYPE "public"."role" AS ENUM('student', 'university_admin', 'system_admin');--> statement-breakpoint
 CREATE TABLE "application_windows" (
 	"windowID" serial PRIMARY KEY NOT NULL,
 	"name" varchar(100) NOT NULL,
 	"startDate" date NOT NULL,
 	"endDate" date NOT NULL,
-	"isActive" boolean DEFAULT false
+	"isActive" boolean DEFAULT false,
+	"programmeID" integer NOT NULL,
+	"totalSlots" integer NOT NULL,
+	"availableSlots" integer NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "applications" (
@@ -14,7 +18,7 @@ CREATE TABLE "applications" (
 	"clusterID" integer,
 	"choiceOrder" integer NOT NULL,
 	"applicationDate" date NOT NULL,
-	"status" varchar(50) DEFAULT 'Pending',
+	"status" "application_status" DEFAULT 'pending',
 	"clusterScore" numeric(5, 2)
 );
 --> statement-breakpoint
@@ -40,8 +44,10 @@ CREATE TABLE "placements" (
 	"placementID" serial PRIMARY KEY NOT NULL,
 	"userID" integer NOT NULL,
 	"programmeID" integer NOT NULL,
-	"placementStatus" varchar(50) DEFAULT 'Not Placed',
-	"placementDate" date
+	"universityID" integer NOT NULL,
+	"applicationID" integer NOT NULL,
+	"year" integer NOT NULL,
+	"placementDate" timestamp DEFAULT now()
 );
 --> statement-breakpoint
 CREATE TABLE "programme_cluster_map" (
@@ -94,7 +100,9 @@ CREATE TABLE "university_programmes" (
 	"durationYears" numeric(2, 1),
 	"minAGP" integer,
 	"helbEligible" boolean DEFAULT false,
-	"scholarshipAvailable" boolean DEFAULT false
+	"scholarshipAvailable" boolean DEFAULT false,
+	"capacity" integer NOT NULL,
+	"filledSlots" integer DEFAULT 0
 );
 --> statement-breakpoint
 CREATE TABLE "users" (
@@ -120,12 +128,15 @@ CREATE TABLE "users" (
 	CONSTRAINT "users_email_unique" UNIQUE("email")
 );
 --> statement-breakpoint
+ALTER TABLE "application_windows" ADD CONSTRAINT "application_windows_programmeID_programmes_programmeID_fk" FOREIGN KEY ("programmeID") REFERENCES "public"."programmes"("programmeID") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "applications" ADD CONSTRAINT "applications_userID_users_userID_fk" FOREIGN KEY ("userID") REFERENCES "public"."users"("userID") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "applications" ADD CONSTRAINT "applications_programmeID_programmes_programmeID_fk" FOREIGN KEY ("programmeID") REFERENCES "public"."programmes"("programmeID") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "applications" ADD CONSTRAINT "applications_clusterID_programme_clusters_clusterID_fk" FOREIGN KEY ("clusterID") REFERENCES "public"."programme_clusters"("clusterID") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "kcse_results" ADD CONSTRAINT "kcse_results_userID_users_userID_fk" FOREIGN KEY ("userID") REFERENCES "public"."users"("userID") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "placements" ADD CONSTRAINT "placements_userID_users_userID_fk" FOREIGN KEY ("userID") REFERENCES "public"."users"("userID") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "placements" ADD CONSTRAINT "placements_programmeID_programmes_programmeID_fk" FOREIGN KEY ("programmeID") REFERENCES "public"."programmes"("programmeID") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "placements" ADD CONSTRAINT "placements_universityID_universities_universityID_fk" FOREIGN KEY ("universityID") REFERENCES "public"."universities"("universityID") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "placements" ADD CONSTRAINT "placements_applicationID_applications_applicationID_fk" FOREIGN KEY ("applicationID") REFERENCES "public"."applications"("applicationID") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "programme_cluster_map" ADD CONSTRAINT "programme_cluster_map_programmeID_programmes_programmeID_fk" FOREIGN KEY ("programmeID") REFERENCES "public"."programmes"("programmeID") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "programme_cluster_map" ADD CONSTRAINT "programme_cluster_map_clusterID_programme_clusters_clusterID_fk" FOREIGN KEY ("clusterID") REFERENCES "public"."programme_clusters"("clusterID") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "programme_cluster_subjects" ADD CONSTRAINT "programme_cluster_subjects_clusterID_programme_clusters_clusterID_fk" FOREIGN KEY ("clusterID") REFERENCES "public"."programme_clusters"("clusterID") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint

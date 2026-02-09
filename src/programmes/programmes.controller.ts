@@ -22,9 +22,9 @@ export const createProgrammeController = async (
   res: Response
 ) => {
   try {
-    const { clusterIDs, ...programme } = req.body;
+    const { clusterIDs, universityID, ...programme } = req.body;
 
-    if (!programme.universityID || !programme.name) {
+    if (!universityID || !programme.name) {
       return res.status(400).json({
         message: "University ID and programme name are required.",
       });
@@ -32,6 +32,7 @@ export const createProgrammeController = async (
 
     const created = await createProgrammeService({
       programme,
+      universityID, 
       clusterIDs,
     });
 
@@ -53,8 +54,8 @@ export const getAllProgrammesController = async (
   res: Response
 ) => {
   try {
-    const rows = await getAllProgrammesService();
-    res.status(200).json({ data: rows });
+    const programmes = await getAllProgrammesService();
+    res.status(200).json({ data: programmes });
   } catch (error: any) {
     console.error("getAllProgrammesController:", error);
     res.status(500).json({ error: error.message });
@@ -179,9 +180,7 @@ export const getProgrammesByLevelController = async (
       Array.isArray(levelParam) ? levelParam[0] : levelParam;
 
     if (!level) {
-      return res.status(400).json({
-        message: "Programme level is required",
-      });
+      return res.status(400).json({ message: "Programme level is required" });
     }
 
     const programmes = await getProgrammesByLevelService(level);
@@ -214,14 +213,13 @@ export const getProgrammesByClusterController = async (
 };
 
 /* =============================
-   FILTER PROGRAMMES (FIXED)
+   FILTER PROGRAMMES
 ============================= */
 export const filterProgrammesController = async (
   req: Request,
   res: Response
 ) => {
   try {
-    // ✅ Normalize level safely
     let level: string | undefined;
     const levelQuery = req.query.level;
 
@@ -231,7 +229,6 @@ export const filterProgrammesController = async (
       level = levelQuery[0];
     }
 
-    // ✅ Normalize universityID safely
     const universityID =
       typeof req.query.universityID === "string"
         ? Number(req.query.universityID)
@@ -240,10 +237,7 @@ export const filterProgrammesController = async (
     const filters: {
       level?: string;
       universityID?: number;
-    } = {
-      level,
-      universityID,
-    };
+    } = { level, universityID };
 
     const programmes = await filterProgrammesService(filters);
     res.status(200).json({ data: programmes });

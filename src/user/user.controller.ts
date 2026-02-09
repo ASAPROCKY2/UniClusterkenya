@@ -13,7 +13,7 @@ import {
 } from "../user/user.service";
 
 //
-// 🧩 Create a new user
+//  Create a new user
 //
 export const createUserController = async (req: Request, res: Response) => {
   try {
@@ -29,8 +29,8 @@ export const createUserController = async (req: Request, res: Response) => {
       photoURL,
       gender,
       highSchool,
-      phoneNumber,     // ✅ FIXED
-      citizenship,     // ✅ FIXED
+      phoneNumber,     
+      citizenship,     
     } = req.body;
 
     if (!email || !password) {
@@ -53,8 +53,8 @@ export const createUserController = async (req: Request, res: Response) => {
       passwordHash: password,
       role: role || "student",
 
-      phoneNumber: phoneNumber?.trim() || null,   // ✅ FIXED
-      citizenship: citizenship?.trim() || null,   // ✅ FIXED
+      phoneNumber: phoneNumber?.trim() || null,   
+      citizenship: citizenship?.trim() || null,   
 
       kcseIndex: kcseIndex?.trim() || null,
       agp: agp || null,
@@ -70,13 +70,13 @@ export const createUserController = async (req: Request, res: Response) => {
       message: "User created successfully. Verification code sent to email.",
     });
   } catch (error: any) {
-    console.error("❌ Error in createUserController:", error);
+    console.error(" Error in createUserController:", error);
     return res.status(500).json({ error: error.message });
   }
 };
 
 //
-// 🧩 Verify user
+//  Verify user
 //
 export const verifyUserController = async (req: Request, res: Response) => {
   try {
@@ -93,13 +93,13 @@ export const verifyUserController = async (req: Request, res: Response) => {
 
     return res.status(200).json({ message: "User verified successfully" });
   } catch (error: any) {
-    console.error("❌ Error in verifyUserController:", error);
+    console.error("Error in verifyUserController:", error);
     return res.status(500).json({ error: error.message });
   }
 };
 
 //
-// 🧩 Login user
+// Login user
 //
 export const userLoginController = async (req: Request, res: Response) => {
   try {
@@ -144,26 +144,26 @@ export const userLoginController = async (req: Request, res: Response) => {
       user: userData,
     });
   } catch (error: any) {
-    console.error("❌ Error in userLoginController:", error);
+    console.error(" Error in userLoginController:", error);
     return res.status(500).json({ error: error.message });
   }
 };
 
 //
-// 🧩 Get all users
+//  Get all users
 //
 export const getUsersController = async (_req: Request, res: Response) => {
   try {
     const users = await getUsersService();
     return res.status(200).json({ data: users });
   } catch (error: any) {
-    console.error("❌ Error in getUsersController:", error);
+    console.error(" Error in getUsersController:", error);
     return res.status(500).json({ error: error.message });
   }
 };
 
 //
-// 🧩 Get user by ID
+//  Get user by ID
 //
 export const getUserByIdController = async (req: Request, res: Response) => {
   try {
@@ -179,13 +179,13 @@ export const getUserByIdController = async (req: Request, res: Response) => {
 
     return res.status(200).json({ data: user });
   } catch (error: any) {
-    console.error("❌ Error in getUserByIdController:", error);
+    console.error(" Error in getUserByIdController:", error);
     return res.status(500).json({ error: error.message });
   }
 };
 
 //
-// 🧩 Update user
+//  Update user
 //
 export const updateUserController = async (req: Request, res: Response) => {
   try {
@@ -205,13 +205,13 @@ export const updateUserController = async (req: Request, res: Response) => {
 
     return res.status(200).json({ message: "User updated successfully" });
   } catch (error: any) {
-    console.error("❌ Error in updateUserController:", error);
+    console.error(" Error in updateUserController:", error);
     return res.status(500).json({ error: error.message });
   }
 };
 
 //
-// 🧩 Delete user
+//  Delete user
 //
 export const deleteUserController = async (req: Request, res: Response) => {
   try {

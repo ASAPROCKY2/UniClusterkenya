@@ -1,40 +1,41 @@
-// src/applicationWindows/applicationWindows.router.ts
-
+// src/programmes/programmeWindow.router.ts
 import { Express, Request, Response, NextFunction } from "express";
 import {
-  createWindowController,
-  getAllWindowsController,
-  getWindowByIdController,
-  updateWindowController,
-  deleteWindowController,
+  createApplicationWindowController,
+  getAllApplicationWindowsController,
+  getApplicationWindowByIdController,
+  updateApplicationWindowController,
+  deleteApplicationWindowController,
+  getActiveApplicationWindowsController,
+  filterApplicationWindowsController,
 } from "./applicationWindows.controller";
 
-const ApplicationWindowsRoutes = (app: Express) => {
+const ProgrammeWindowRoutes = (app: Express) => {
   
-  // ✅ Create a new application window
+  // Create a new application window
   app.post("/application-window", async (req: Request, res: Response, next: NextFunction) => {
     try {
-      await createWindowController(req, res);
+      await createApplicationWindowController(req, res);
     } catch (error) {
       console.error("Error in POST /application-window:", error);
       next(error);
     }
   });
 
-  // ✅ Get all application windows
+  // Get all application windows
   app.get("/application-window", async (req: Request, res: Response, next: NextFunction) => {
     try {
-      await getAllWindowsController(req, res);
+      await getAllApplicationWindowsController(req, res);
     } catch (error) {
       console.error("Error in GET /application-window:", error);
       next(error);
     }
   });
 
-  // ✅ Get application window by ID
+  // Get application window by ID
   app.get("/application-window/:id", async (req: Request, res: Response, next: NextFunction) => {
     try {
-      await getWindowByIdController(req, res);
+      await getApplicationWindowByIdController(req, res);
     } catch (error) {
       console.error(`Error in GET /application-window/${req.params.id}:`, error);
       next(error);
@@ -44,22 +45,42 @@ const ApplicationWindowsRoutes = (app: Express) => {
   // Update application window by ID
   app.put("/application-window/:id", async (req: Request, res: Response, next: NextFunction) => {
     try {
-      await updateWindowController(req, res);
+      await updateApplicationWindowController(req, res);
     } catch (error) {
       console.error(`Error in PUT /application-window/${req.params.id}:`, error);
       next(error);
     }
   });
 
-  //  Delete application window by ID
+  // Delete application window by ID
   app.delete("/application-window/:id", async (req: Request, res: Response, next: NextFunction) => {
     try {
-      await deleteWindowController(req, res);
+      await deleteApplicationWindowController(req, res);
     } catch (error) {
       console.error(`Error in DELETE /application-window/${req.params.id}:`, error);
       next(error);
     }
   });
+
+  // Get all active application windows
+  app.get("/application-window/active", async (_req: Request, res: Response, next: NextFunction) => {
+    try {
+      await getActiveApplicationWindowsController(_req, res);
+    } catch (error) {
+      console.error("Error in GET /application-window/active:", error);
+      next(error);
+    }
+  });
+
+  // Filter application windows
+  app.get("/application-window/filter", async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      await filterApplicationWindowsController(req, res);
+    } catch (error) {
+      console.error("Error in GET /application-window/filter:", error);
+      next(error);
+    }
+  });
 };
 
-export default ApplicationWindowsRoutes;
+export default ProgrammeWindowRoutes;
