@@ -7,7 +7,7 @@ import {
   updateApplicationService,
   deleteApplicationService,
   getUserApplicationsService,
-} from "./studentsApplication.service";
+} from "./studentsApplication.service"; // <- updated service import
 
 // Helper to safely parse IDs from req.params
 const parseID = (value: string | string[] | undefined): number | null => {
@@ -139,8 +139,7 @@ export const deleteApplicationController = async (req: Request, res: Response) =
 ============================= */
 export const getUserApplicationsController = async (req: Request, res: Response) => {
   try {
-    // ✅ Match router param name
-    const userID = parseID(req.params.studentID);
+    const userID = parseID(req.params.studentID || req.params.userID);
     if (!userID) return res.status(400).json({ message: "Invalid user ID." });
 
     const applications = await getUserApplicationsService(userID);

@@ -16,6 +16,9 @@ import SystemAdminsRoutes from "./systemAdmins/systemAdmins.router";
 import NotificationsRoutes from "./notification/notification.router";
 import UserRoutes from "./user/user.router";
 
+// 🆕 Cluster Subjects routes
+import ClusterProgrammeRoutes from "./ClusterProgramme/ClusterProgram.router";
+
 // =============================
 // APP SETUP
 // =============================
@@ -52,6 +55,9 @@ UniversityAdminsRoutes(app);
 SystemAdminsRoutes(app);
 NotificationsRoutes(app);
 UserRoutes(app);
+
+// 🆕 Register ClusterSubjects routes
+app.use("/api/cluster-subjects", ClusterProgrammeRoutes);
 
 // =============================
 // SERVER

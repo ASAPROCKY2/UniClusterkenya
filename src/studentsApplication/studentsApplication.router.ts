@@ -8,11 +8,13 @@ import {
   updateApplicationController,
   deleteApplicationController,
   getUserApplicationsController,
-} from "./studentsApplication.controller";
+} from "./studentsApplication.controller"; // Updated import
 
 const ApplicationsRoutes = (app: Express) => {
   
-  //  Create a new student application
+  // =============================
+  // Create a new student application
+  // =============================
   app.post("/application", async (req: Request, res: Response, next: NextFunction) => {
     try {
       await createApplicationController(req, res);
@@ -22,7 +24,9 @@ const ApplicationsRoutes = (app: Express) => {
     }
   });
 
-  // ✅ Get all student applications
+  // =============================
+  // Get all student applications
+  // =============================
   app.get("/application", async (req: Request, res: Response, next: NextFunction) => {
     try {
       await getAllApplicationsController(req, res);
@@ -32,7 +36,9 @@ const ApplicationsRoutes = (app: Express) => {
     }
   });
 
-  // ✅ Get application by ID
+  // =============================
+  // Get application by ID
+  // =============================
   app.get("/application/:id", async (req: Request, res: Response, next: NextFunction) => {
     try {
       await getApplicationByIdController(req, res);
@@ -42,7 +48,9 @@ const ApplicationsRoutes = (app: Express) => {
     }
   });
 
-  // ✅ Update application by ID
+  // =============================
+  // Update application by ID
+  // =============================
   app.put("/application/:id", async (req: Request, res: Response, next: NextFunction) => {
     try {
       await updateApplicationController(req, res);
@@ -52,7 +60,9 @@ const ApplicationsRoutes = (app: Express) => {
     }
   });
 
-  //  Delete application by ID
+  // =============================
+  // Delete application by ID
+  // =============================
   app.delete("/application/:id", async (req: Request, res: Response, next: NextFunction) => {
     try {
       await deleteApplicationController(req, res);
@@ -62,12 +72,26 @@ const ApplicationsRoutes = (app: Express) => {
     }
   });
 
-  //  Get all applications for a specific student
+  // =============================
+  // Get all applications for a specific student (by studentID)
+  // =============================
   app.get("/application/student/:studentID", async (req: Request, res: Response, next: NextFunction) => {
     try {
       await getUserApplicationsController(req, res);
     } catch (error) {
       console.error(`Error in GET /application/student/${req.params.studentID}:`, error);
+      next(error);
+    }
+  });
+
+  // =============================
+  // Optional: Get all applications for a user (by userID)
+  // =============================
+  app.get("/application/user/:userID", async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      await getUserApplicationsController(req, res);
+    } catch (error) {
+      console.error(`Error in GET /application/user/${req.params.userID}:`, error);
       next(error);
     }
   });

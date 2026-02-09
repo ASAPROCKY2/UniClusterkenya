@@ -75,7 +75,9 @@ export const UniversitiesTable = pgTable("universities", {
   helbEligible: boolean("helbEligible").default(false),
 });
 
-
+/* =============================
+   PROGRAMMES TABLE
+============================= */
 export const ProgrammesTable = pgTable("programmes", {
   programmeID: serial("programmeID").primaryKey(),
   name: varchar("name", { length: 100 }).notNull(),
@@ -83,7 +85,7 @@ export const ProgrammesTable = pgTable("programmes", {
 });
 
 /* =============================
-   UNIVERSITY-PROGRAMMES JOIN TABLE
+   UNIVERSITY-PROGRAMMES JOIN
 ============================= */
 export const UniversityProgrammesTable = pgTable("university_programmes", {
   id: serial("id").primaryKey(),
@@ -100,7 +102,7 @@ export const UniversityProgrammesTable = pgTable("university_programmes", {
 });
 
 /* =============================
-   PROGRAMME LEVELS TABLE
+   PROGRAMME LEVELS
 ============================= */
 export const ProgrammeLevelsTable = pgTable("programme_levels", {
   levelID: serial("levelID").primaryKey(),
@@ -109,7 +111,7 @@ export const ProgrammeLevelsTable = pgTable("programme_levels", {
 });
 
 /* =============================
-   PROGRAMME CLUSTERS TABLE
+   PROGRAMME CLUSTERS
 ============================= */
 export const ProgrammeClustersTable = pgTable("programme_clusters", {
   clusterID: serial("clusterID").primaryKey(),
@@ -130,8 +132,32 @@ export const ProgrammeClusterMapTable = pgTable("programme_cluster_map", {
     .references(() => ProgrammeClustersTable.clusterID, { onDelete: "cascade" }),
 });
 
+/* =========================================================
+   🆕 PROGRAMME CLUSTER SUBJECT REQUIREMENTS (NEW)
+========================================================= */
+export const ProgrammeClusterSubjectsTable = pgTable(
+  "programme_cluster_subjects",
+  {
+    id: serial("id").primaryKey(),
+
+    clusterID: integer("clusterID")
+      .notNull()
+      .references(() => ProgrammeClustersTable.clusterID, {
+        onDelete: "cascade",
+      }),
+
+    subjectCode: varchar("subjectCode", { length: 10 }).notNull(),
+    subjectName: varchar("subjectName", { length: 50 }).notNull(),
+
+    minPoints: integer("minPoints").notNull(),
+
+    // Used for OR logic (Physics OR Computer Studies)
+    alternativeGroup: integer("alternativeGroup"),
+  }
+);
+
 /* =============================
-   APPLICATIONS TABLE
+   APPLICATIONS TABLE (FIXED)
 ============================= */
 export const ApplicationsTable = pgTable("applications", {
   applicationID: serial("applicationID").primaryKey(),
@@ -141,6 +167,8 @@ export const ApplicationsTable = pgTable("applications", {
   programmeID: integer("programmeID")
     .notNull()
     .references(() => ProgrammesTable.programmeID, { onDelete: "cascade" }),
+  clusterID: integer("clusterID")
+    .references(() => ProgrammeClustersTable.clusterID, { onDelete: "set null" }),
   choiceOrder: integer("choiceOrder").notNull(),
   applicationDate: date("applicationDate").notNull(),
   status: varchar("status", { length: 50 }).default("Pending"),
@@ -188,7 +216,7 @@ export const NotificationsTable = pgTable("notifications", {
 });
 
 /* =============================
-   RELATIONS (FIXED & EXPLICIT)
+   RELATIONS
 ============================= */
 
 export const UserRelations = relations(UsersTable, ({ many }) => ({
@@ -215,16 +243,19 @@ export const ProgrammesRelations = relations(ProgrammesTable, ({ many }) => ({
   placements: many(PlacementsTable),
 }));
 
-export const UniversityProgrammesRelations = relations(UniversityProgrammesTable, ({ one }) => ({
-  university: one(UniversitiesTable, {
-    fields: [UniversityProgrammesTable.universityID],
-    references: [UniversitiesTable.universityID],
-  }),
-  programme: one(ProgrammesTable, {
-    fields: [UniversityProgrammesTable.programmeID],
-    references: [ProgrammesTable.programmeID],
-  }),
-}));
+export const UniversityProgrammesRelations = relations(
+  UniversityProgrammesTable,
+  ({ one }) => ({
+    university: one(UniversitiesTable, {
+      fields: [UniversityProgrammesTable.universityID],
+      references: [UniversitiesTable.universityID],
+    }),
+    programme: one(ProgrammesTable, {
+      fields: [UniversityProgrammesTable.programmeID],
+      references: [ProgrammesTable.programmeID],
+    }),
+  })
+);
 
 export const ProgrammeClusterRelations = relations(
   ProgrammeClusterMapTable,
@@ -240,6 +271,18 @@ export const ProgrammeClusterRelations = relations(
   })
 );
 
+/* 🆕 Cluster → Subjects relation */
+export const ProgrammeClusterSubjectsRelations = relations(
+  ProgrammeClusterSubjectsTable,
+  ({ one }) => ({
+    cluster: one(ProgrammeClustersTable, {
+      fields: [ProgrammeClusterSubjectsTable.clusterID],
+      references: [ProgrammeClustersTable.clusterID],
+    }),
+  })
+);
+
+/* 🆕 APPLICATION → CLUSTER relation */
 export const ApplicationsRelations = relations(ApplicationsTable, ({ one }) => ({
   student: one(UsersTable, {
     fields: [ApplicationsTable.userID],
@@ -248,6 +291,10 @@ export const ApplicationsRelations = relations(ApplicationsTable, ({ one }) => (
   programme: one(ProgrammesTable, {
     fields: [ApplicationsTable.programmeID],
     references: [ProgrammesTable.programmeID],
+  }),
+  cluster: one(ProgrammeClustersTable, {
+    fields: [ApplicationsTable.clusterID],
+    references: [ProgrammeClustersTable.clusterID],
   }),
 }));
 
@@ -277,8 +324,10 @@ export type TSUniversity = InferModel<typeof UniversitiesTable, "select">;
 export type TIProgramme = InferModel<typeof ProgrammesTable, "insert">;
 export type TSProgramme = InferModel<typeof ProgrammesTable, "select">;
 
-export type TIUniversityProgramme = InferModel<typeof UniversityProgrammesTable, "insert">;
-export type TSUniversityProgramme = InferModel<typeof UniversityProgrammesTable, "select">;
+export type TIUniversityProgramme =
+  InferModel<typeof UniversityProgrammesTable, "insert">;
+export type TSUniversityProgramme =
+  InferModel<typeof UniversityProgrammesTable, "select">;
 
 export type TIApplication = InferModel<typeof ApplicationsTable, "insert">;
 export type TSApplication = InferModel<typeof ApplicationsTable, "select">;
@@ -286,8 +335,18 @@ export type TSApplication = InferModel<typeof ApplicationsTable, "select">;
 export type TIPlacement = InferModel<typeof PlacementsTable, "insert">;
 export type TSPlacement = InferModel<typeof PlacementsTable, "select">;
 
-export type TIApplicationWindow = InferModel<typeof ApplicationWindowsTable, "insert">;
-export type TSApplicationWindow = InferModel<typeof ApplicationWindowsTable, "select">;
+export type TIApplicationWindow =
+  InferModel<typeof ApplicationWindowsTable, "insert">;
+export type TSApplicationWindow =
+  InferModel<typeof ApplicationWindowsTable, "select">;
 
-export type TINotification = InferModel<typeof NotificationsTable, "insert">;
-export type TSNotification = InferModel<typeof NotificationsTable, "select">;
+export type TINotification =
+  InferModel<typeof NotificationsTable, "insert">;
+export type TSNotification =
+  InferModel<typeof NotificationsTable, "select">;
+
+/*  NEW TYPES */
+export type TIProgrammeClusterSubject =
+  InferModel<typeof ProgrammeClusterSubjectsTable, "insert">;
+export type TSProgrammeClusterSubject =
+  InferModel<typeof ProgrammeClusterSubjectsTable, "select">;

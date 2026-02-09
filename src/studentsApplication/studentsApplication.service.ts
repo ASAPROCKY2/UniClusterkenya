@@ -1,28 +1,47 @@
 // src/applications/applications.service.ts
 import { eq } from "drizzle-orm";
 import db from "../Drizzle/db";
-import { ApplicationsTable } from "../Drizzle/schema";
+import {
+  ApplicationsTable,
+  ProgrammeClusterMapTable,
+  ProgrammeClustersTable,
+} from "../Drizzle/schema";
 import type { TIApplication } from "../Drizzle/schema";
 
 /* =============================
    CREATE A NEW STUDENT APPLICATION
+   - Automatically assigns clusterID based on programmeID
 ============================= */
 export const createApplicationService = async (application: TIApplication) => {
+  // Fetch clusterID from ProgrammeClusterMapTable
+  const clusterMap = await db.query.ProgrammeClusterMapTable.findFirst({
+    where: eq(ProgrammeClusterMapTable.programmeID, application.programmeID),
+  });
+
+  if (!clusterMap) {
+    throw new Error("No cluster found for the selected programme.");
+  }
+
+  application.clusterID = clusterMap.clusterID;
+
   const [newApplication] = await db
     .insert(ApplicationsTable)
     .values(application)
     .returning();
+
   return newApplication;
 };
 
 /* =============================
    GET ALL STUDENT APPLICATIONS
+   - Includes student, programme, and cluster info
 ============================= */
 export const getAllApplicationsService = async () => {
   return await db.query.ApplicationsTable.findMany({
     with: {
-      student: true,   // include related user info
-      programme: true, // include related programme info
+      student: true,
+      programme: true,
+      cluster: true,
     },
   });
 };
@@ -36,6 +55,7 @@ export const getApplicationByIdService = async (id: number) => {
     with: {
       student: true,
       programme: true,
+      cluster: true,
     },
   });
 };
@@ -47,9 +67,21 @@ export const updateApplicationService = async (
   id: number,
   data: Partial<TIApplication>
 ) => {
+  // Optional: if programmeID is updated, automatically update clusterID
+  if (data.programmeID) {
+    const clusterMap = await db.query.ProgrammeClusterMapTable.findFirst({
+      where: eq(ProgrammeClusterMapTable.programmeID, data.programmeID),
+    });
+    if (!clusterMap) {
+      throw new Error("No cluster found for the selected programme.");
+    }
+    data.clusterID = clusterMap.clusterID;
+  }
+
   await db.update(ApplicationsTable)
     .set(data)
     .where(eq(ApplicationsTable.applicationID, id));
+
   return "Application updated successfully";
 };
 
@@ -71,6 +103,7 @@ export const getUserApplicationsService = async (userID: number) => {
     with: {
       student: true,
       programme: true,
+      cluster: true,
     },
   });
 };

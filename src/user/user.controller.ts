@@ -29,6 +29,8 @@ export const createUserController = async (req: Request, res: Response) => {
       photoURL,
       gender,
       highSchool,
+      phoneNumber,     // ✅ FIXED
+      citizenship,     // ✅ FIXED
     } = req.body;
 
     if (!email || !password) {
@@ -43,19 +45,23 @@ export const createUserController = async (req: Request, res: Response) => {
       return res.status(409).json({ message: "Email already in use" });
     }
 
-    // Prepare user object
+    // Prepare user object (matches Drizzle schema)
     const newUser = {
       firstName: firstName?.trim() || "",
       lastName: lastName?.trim() || "",
       email: trimmedEmail,
       passwordHash: password,
       role: role || "student",
+
+      phoneNumber: phoneNumber?.trim() || null,   // ✅ FIXED
+      citizenship: citizenship?.trim() || null,   // ✅ FIXED
+
       kcseIndex: kcseIndex?.trim() || null,
       agp: agp || null,
       meanGrade: meanGrade || null,
       photoURL: photoURL || null,
-      gender: gender || null,           // ✅ added
-      highSchool: highSchool || null,   // ✅ added
+      gender: gender || null,
+      highSchool: highSchool || null,
     };
 
     await createUserService(newUser);
@@ -78,7 +84,9 @@ export const verifyUserController = async (req: Request, res: Response) => {
     const verificationCode = req.body?.verificationCode?.trim();
 
     if (!email || !verificationCode) {
-      return res.status(400).json({ error: "Email and verification code are required." });
+      return res.status(400).json({
+        error: "Email and verification code are required.",
+      });
     }
 
     await verifyUserService(email, verificationCode);
@@ -100,19 +108,19 @@ export const userLoginController = async (req: Request, res: Response) => {
     const password = req.body?.password;
 
     if (!email || !password) {
-      return res.status(400).json({ error: "Email and password are required." });
+      return res.status(400).json({
+        error: "Email and password are required.",
+      });
     }
 
-    // Validate user login
     const userData = await userLoginService({
       email,
       kcseIndex: kcseIndex || "",
       password,
     });
 
-    // Generate JWT
     const secret = process.env.JWT_SECRET;
-    if (!secret) throw new Error("JWT_SECRET not defined in environment.");
+    if (!secret) throw new Error("JWT_SECRET not defined.");
 
     const token = jwt.sign(
       {
@@ -122,15 +130,19 @@ export const userLoginController = async (req: Request, res: Response) => {
         firstName: userData.firstName,
         lastName: userData.lastName,
         kcseIndex: userData.kcseIndex,
-        photoURL: userData.photoURL,       // ✅ updated
-        gender: userData.gender,           // ✅ added
-        highSchool: userData.highSchool,   // ✅ added
+        photoURL: userData.photoURL,
+        gender: userData.gender,
+        highSchool: userData.highSchool,
       },
       secret,
       { expiresIn: "1h" }
     );
 
-    return res.status(200).json({ message: "Login successful", token, user: userData });
+    return res.status(200).json({
+      message: "Login successful",
+      token,
+      user: userData,
+    });
   } catch (error: any) {
     console.error("❌ Error in userLoginController:", error);
     return res.status(500).json({ error: error.message });
@@ -156,10 +168,14 @@ export const getUsersController = async (_req: Request, res: Response) => {
 export const getUserByIdController = async (req: Request, res: Response) => {
   try {
     const id = parseInt(req.params.id as string, 10);
-    if (isNaN(id)) return res.status(400).json({ message: "Invalid user ID" });
+    if (isNaN(id)) {
+      return res.status(400).json({ message: "Invalid user ID" });
+    }
 
     const user = await getUserByIdService(id);
-    if (!user) return res.status(404).json({ message: "User not found" });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
 
     return res.status(200).json({ data: user });
   } catch (error: any) {
@@ -174,11 +190,12 @@ export const getUserByIdController = async (req: Request, res: Response) => {
 export const updateUserController = async (req: Request, res: Response) => {
   try {
     const id = parseInt(req.params.id as string, 10);
-    if (isNaN(id)) return res.status(400).json({ message: "Invalid user ID" });
+    if (isNaN(id)) {
+      return res.status(400).json({ message: "Invalid user ID" });
+    }
 
     const updates: any = { ...req.body };
 
-    // If password is being updated, hash it
     if (updates.password) {
       updates.passwordHash = await bcrypt.hash(updates.password, 10);
       delete updates.password;
@@ -199,13 +216,15 @@ export const updateUserController = async (req: Request, res: Response) => {
 export const deleteUserController = async (req: Request, res: Response) => {
   try {
     const id = parseInt(req.params.id as string, 10);
-    if (isNaN(id)) return res.status(400).json({ message: "Invalid user ID" });
+    if (isNaN(id)) {
+      return res.status(400).json({ message: "Invalid user ID" });
+    }
 
     await deleteUserService(id);
 
     return res.status(200).json({ message: "User deleted successfully" });
   } catch (error: any) {
-    console.error("❌ Error in deleteUserController:", error);
+    console.error(" Error in deleteUserController:", error);
     return res.status(500).json({ error: error.message });
   }
 };

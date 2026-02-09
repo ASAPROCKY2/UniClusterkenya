@@ -1,5 +1,5 @@
 {
-  "id": "27265cd2-72d1-49cb-aef5-fc9daf59fa01",
+  "id": "c8f7afd9-b9e5-497b-9832-0a018a6b4030",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -70,6 +70,12 @@
           "primaryKey": false,
           "notNull": true
         },
+        "clusterID": {
+          "name": "clusterID",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
         "choiceOrder": {
           "name": "choiceOrder",
           "type": "integer",
@@ -122,6 +128,19 @@
             "programmeID"
           ],
           "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "applications_clusterID_programme_clusters_clusterID_fk": {
+          "name": "applications_clusterID_programme_clusters_clusterID_fk",
+          "tableFrom": "applications",
+          "tableTo": "programme_clusters",
+          "columnsFrom": [
+            "clusterID"
+          ],
+          "columnsTo": [
+            "clusterID"
+          ],
+          "onDelete": "set null",
           "onUpdate": "no action"
         }
       },
@@ -356,6 +375,69 @@
         "programme_cluster_map_clusterID_programme_clusters_clusterID_fk": {
           "name": "programme_cluster_map_clusterID_programme_clusters_clusterID_fk",
           "tableFrom": "programme_cluster_map",
+          "tableTo": "programme_clusters",
+          "columnsFrom": [
+            "clusterID"
+          ],
+          "columnsTo": [
+            "clusterID"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.programme_cluster_subjects": {
+      "name": "programme_cluster_subjects",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "clusterID": {
+          "name": "clusterID",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "subjectCode": {
+          "name": "subjectCode",
+          "type": "varchar(10)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "subjectName": {
+          "name": "subjectName",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "minPoints": {
+          "name": "minPoints",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "alternativeGroup": {
+          "name": "alternativeGroup",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "programme_cluster_subjects_clusterID_programme_clusters_clusterID_fk": {
+          "name": "programme_cluster_subjects_clusterID_programme_clusters_clusterID_fk",
+          "tableFrom": "programme_cluster_subjects",
           "tableTo": "programme_clusters",
           "columnsFrom": [
             "clusterID"
